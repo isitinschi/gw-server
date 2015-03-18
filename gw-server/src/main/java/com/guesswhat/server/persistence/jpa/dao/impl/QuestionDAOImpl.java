@@ -1,6 +1,6 @@
 package com.guesswhat.server.persistence.jpa.dao.impl;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityJDO;
+import com.guesswhat.server.persistence.jpa.jdo.EntityJDO;
 import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 

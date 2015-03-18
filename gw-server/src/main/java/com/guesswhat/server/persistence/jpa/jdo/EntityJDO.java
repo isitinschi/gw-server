@@ -1,4 +1,4 @@
-package com.guesswhat.server.persistence.jpa.dao;
+package com.guesswhat.server.persistence.jpa.jdo;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManagerFactory;

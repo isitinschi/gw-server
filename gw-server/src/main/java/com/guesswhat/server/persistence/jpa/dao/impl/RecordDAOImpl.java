@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.jdo.PersistenceManager;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityJDO;
+import com.guesswhat.server.persistence.jpa.jdo.EntityJDO;
 import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 
