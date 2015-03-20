@@ -66,10 +66,16 @@ public class RecordDAOImpl extends EntityJDO implements RecordDAO {
 
 	@Override
 	public Record find(Record record) {
+		return find(record.getId());
+	}
+
+	@Override
+	public Record find(Long id) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
+		Record record = null;
 		try {
-			record = pm.getObjectById(Record.class, record.getId());
+			record = pm.getObjectById(Record.class, id);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		} finally {
@@ -78,12 +84,11 @@ public class RecordDAOImpl extends EntityJDO implements RecordDAO {
 		
 		return record;
 	}
-
+	
 	@Override
 	public List<Record> findTop() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 	
 }

@@ -5,4 +5,5 @@ public interface EntityDAO<T> {
 	void update(T t);
 	void remove(T t);
 	T find(T t);
+	T find(Long id);
 }

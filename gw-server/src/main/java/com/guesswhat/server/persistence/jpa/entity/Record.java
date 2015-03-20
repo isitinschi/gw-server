@@ -13,7 +13,7 @@ public class Record {
 
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	private int id;
+	private Long id;
 	@Persistent
 	private int userId;
 	@Persistent
@@ -25,7 +25,7 @@ public class Record {
 		
 	}
 
-	public Record(int id, int userId, String userName, int recordPoints) {
+	public Record(Long id, int userId, String userName, int recordPoints) {
 		super();
 		this.id = id;
 		this.userId = userId;
@@ -39,11 +39,11 @@ public class Record {
 		this.recordPoints = recordDTO.getRecordPoints();
 	}	
 
-	public int getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

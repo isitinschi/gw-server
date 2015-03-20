@@ -7,13 +7,18 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Blob;
+import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Question {
+public class QuestionIncubator {
 
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Long id;
+	@Persistent
+	private String imageNameBefore;
+	@Persistent
+	private String imageNameAfter;
 	@Persistent
 	private Blob imageBefore;
 	@Persistent
@@ -29,24 +34,18 @@ public class Question {
 	@Persistent
 	private String correctAnswer;
 
-	public Question() {
+	public QuestionIncubator() {
 
 	}
 
-	public Question(QuestionIncubator questionIncubator) {
-		this.imageBefore = questionIncubator.getImageBefore();
-		this.imageAfter = questionIncubator.getImageAfter();
-		this.answer1 = questionIncubator.getAnswer1();
-		this.answer2 = questionIncubator.getAnswer2();
-		this.answer3 = questionIncubator.getAnswer3();
-		this.answer4 = questionIncubator.getAnswer4();
-		this.correctAnswer = questionIncubator.getCorrectAnswer();
-	}
-
-	public Question(Long id, Blob imageBefore, Blob imageAfter, String answer1,
-			String answer2, String answer3, String answer4, String correctAnswer) {
+	public QuestionIncubator(Long id, String imageNameBefore,
+			String imageNameAfter, Blob imageBefore, Blob imageAfter,
+			String answer1, String answer2, String answer3, String answer4,
+			String correctAnswer) {
 		super();
 		this.id = id;
+		this.imageNameBefore = imageNameBefore;
+		this.imageNameAfter = imageNameAfter;
 		this.imageBefore = imageBefore;
 		this.imageAfter = imageAfter;
 		this.answer1 = answer1;
@@ -56,12 +55,38 @@ public class Question {
 		this.correctAnswer = correctAnswer;
 	}
 
+	public QuestionIncubator(QuestionDTO questionDTO) {
+		this.imageNameBefore = questionDTO.getImageNameBefore();
+		this.imageNameAfter = questionDTO.getImageNameAfter();
+		this.answer1 = questionDTO.getAnswer1();
+		this.answer2 = questionDTO.getAnswer2();
+		this.answer3 = questionDTO.getAnswer3();
+		this.answer4 = questionDTO.getAnswer4();
+		this.correctAnswer = questionDTO.getCorrectAnswer();
+	}
+
 	public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getImageNameBefore() {
+		return imageNameBefore;
+	}
+
+	public void setImageNameBefore(String imageNameBefore) {
+		this.imageNameBefore = imageNameBefore;
+	}
+
+	public String getImageNameAfter() {
+		return imageNameAfter;
+	}
+
+	public void setImageNameAfter(String imageNameAfter) {
+		this.imageNameAfter = imageNameAfter;
 	}
 
 	public Blob getImageBefore() {
