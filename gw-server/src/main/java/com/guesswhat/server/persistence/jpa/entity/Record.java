@@ -1,20 +1,14 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
-import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
 
 import com.guesswhat.server.services.rs.dto.RecordDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Record {
+public class Record extends Entity {
 
-	@PrimaryKey
-	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	private Long id;
-	@Persistent
 	private int userId;
 	@Persistent
 	private String userName;
@@ -25,9 +19,8 @@ public class Record {
 		
 	}
 
-	public Record(Long id, int userId, String userName, int recordPoints) {
+	public Record(int userId, String userName, int recordPoints) {
 		super();
-		this.id = id;
 		this.userId = userId;
 		this.userName = userName;
 		this.recordPoints = recordPoints;
@@ -38,14 +31,6 @@ public class Record {
 		this.userName = recordDTO.getUserName();
 		this.recordPoints = recordDTO.getRecordPoints();
 	}	
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 
 	public int getUserId() {
 		return userId;

@@ -1,59 +1,54 @@
 package com.guesswhat.server.services.rs.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Path;
 
-import org.apache.commons.io.IOUtils;
-
-import com.google.appengine.api.datastore.Blob;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 import com.guesswhat.server.services.rs.face.QuestionService;
-import com.sun.jersey.multipart.BodyPartEntity;
-import com.sun.jersey.multipart.MultiPart;
 
 @Path("/questions")
 public class QuestionServiceImpl implements QuestionService {
 
 	@Override
-	public String findQuestion() {
-		return "Hi!-)";
+	public List<QuestionDTO> findQuestions() {
+		List<Question> questions = EntityFactory.getInstance().getQuestionDAO().findAll();
+		List<QuestionDTO> questionsDTO = new ArrayList<QuestionDTO>();
+		for (Question question : questions) {
+			QuestionDTO questionDTO = new QuestionDTO(question);
+			questionsDTO.add(questionDTO);
+		}
+		
+		return questionsDTO;
 	}
 
 	@Override
-	public String addQuestion(QuestionDTO questionDTO) {
+	public String createQuestion(QuestionDTO questionDTO) {
 		QuestionIncubator questionIncubator = new QuestionIncubator(questionDTO);
 		EntityFactory.getInstance().getQuestionIncubatorDAO().save(questionIncubator);
-		return String.valueOf(questionIncubator.getId());
+		return String.valueOf(questionIncubator.getKey().getId());
 	}
 
 	@Override
-	public void addQuestionImage(Long questionId, String imageName, MultiPart multiPart) {
-		BodyPartEntity bpe = (BodyPartEntity) multiPart.getBodyParts().get(0).getEntity();
-	    InputStream source = bpe.getInputStream();
-	    Blob blob = null;
-	    try {
-			blob = new Blob(IOUtils.toByteArray(source));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    
-	    QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
-	    if (imageName.equals(questionIncubator.getImageNameBefore())) {
-	    	questionIncubator.setImageBefore(blob);
-	    } else if (imageName.equals(questionIncubator.getImageNameAfter())) {
-	    	questionIncubator.setImageAfter(blob);
-	    }
-	    
-	    if (questionIncubator.getImageBefore() != null && questionIncubator.getImageAfter() != null) {
-	    	Question question = new Question(questionIncubator);
-	    	EntityFactory.getInstance().getQuestionDAO().save(question);
-	    }
+	public QuestionDTO findQuestion(Long questionId) {
+		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		QuestionDTO questionDTO = new QuestionDTO(question);
+		return questionDTO;
 	}
 
+	@Override
+	public void deleteQuestion(Long questionId) {
+		EntityFactory.getInstance().getQuestionDAO().remove(questionId);
+	}
+
+	@Override
+	public void updateQuestion(QuestionDTO questionDTO) {
+		Question question = new Question(questionDTO);
+		EntityFactory.getInstance().getQuestionDAO().update(question);
+	}
 }
 

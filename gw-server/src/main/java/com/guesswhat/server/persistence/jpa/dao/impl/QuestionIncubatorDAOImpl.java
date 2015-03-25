@@ -2,44 +2,49 @@ package com.guesswhat.server.persistence.jpa.dao.impl;
 
 import javax.jdo.PersistenceManager;
 
-import com.guesswhat.server.persistence.jpa.dao.QuestionIncubatorDAO;
+import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
+import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
-import com.guesswhat.server.persistence.jpa.jdo.EntityJDO;
 
-public class QuestionIncubatorDAOImpl extends EntityJDO implements QuestionIncubatorDAO {
+public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
 
 	@Override
-	public void save(QuestionIncubator question) {
+	public void update(QuestionIncubator questionIncubator) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
+		
+		ImageHolder imageQuestion = questionIncubator.getImageQuestion();
+		ImageHolder imageAnswer = questionIncubator.getImageAnswer();
+		String answer1 = questionIncubator.getAnswer1();
+		String answer2 = questionIncubator.getAnswer2();
+		String answer3 = questionIncubator.getAnswer3();
+		String answer4 = questionIncubator.getAnswer4();
+		String correctAnswer = questionIncubator.getCorrectAnswer();
+
 		try {
-			pm.makePersistent(question);
+			pm.currentTransaction().begin();
+			questionIncubator = pm.getObjectById(QuestionIncubator.class, questionIncubator.getKey());
+			questionIncubator.setAnswer1(answer1);
+			questionIncubator.setAnswer2(answer2);
+			questionIncubator.setAnswer3(answer3);
+			questionIncubator.setAnswer4(answer4);
+			questionIncubator.setCorrectAnswer(correctAnswer);
+			questionIncubator.setImageQuestion(imageQuestion);
+			questionIncubator.setImageAnswer(imageAnswer);
+			pm.makePersistent(questionIncubator);
+			pm.currentTransaction().commit();
+		} catch (Exception ex) {
+			pm.currentTransaction().rollback();
+			throw new RuntimeException(ex);
 		} finally {
 			pm.close();
 		}
 	}
-
-	@Override
-	public void update(QuestionIncubator questionIncubator) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void remove(QuestionIncubator questionIncubator) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public QuestionIncubator find(QuestionIncubator questionIncubator) {
-		return find(questionIncubator.getId());
-	}
 	
 	@Override
-	public QuestionIncubator find(Long questionIncubatorId) {
-		// TODO Auto-generated method stub
-		return null;
+	public Class getEntityClass() {
+		return QuestionIncubator.class;
 	}
+	
 	
 }

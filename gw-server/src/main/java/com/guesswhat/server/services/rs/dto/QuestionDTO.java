@@ -2,11 +2,12 @@ package com.guesswhat.server.services.rs.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.guesswhat.server.persistence.jpa.entity.Question;
+
 @XmlRootElement
 public class QuestionDTO {
 
-	private String imageNameBefore;
-	private String imageNameAfter;
+	private String id;
 	private String answer1;
 	private String answer2;
 	private String answer3;
@@ -17,35 +18,24 @@ public class QuestionDTO {
 		
 	}
 
-	public QuestionDTO(String imageNameBefore, String imageNameAfter,
-			String answer1, String answer2, String answer3, String answer4,
-			String correctAnswer) {
+	public QuestionDTO(Question question) {
 		super();
-		this.imageNameBefore = imageNameBefore;
-		this.imageNameAfter = imageNameAfter;
-		this.answer1 = answer1;
-		this.answer2 = answer2;
-		this.answer3 = answer3;
-		this.answer4 = answer4;
-		this.correctAnswer = correctAnswer;
+		this.id = String.valueOf(question.getKey().getId());
+		this.answer1 = question.getAnswer1();
+		this.answer2 = question.getAnswer2();
+		this.answer3 = question.getAnswer3();
+		this.answer4 = question.getAnswer4();
+		this.correctAnswer = question.getCorrectAnswer();
 	}
 
-	public String getImageNameBefore() {
-		return imageNameBefore;
+	public String getId() {
+		return id;
 	}
 
-	public void setImageNameBefore(String imageNameBefore) {
-		this.imageNameBefore = imageNameBefore;
+	public void setId(String id) {
+		this.id = id;
 	}
-
-	public String getImageNameAfter() {
-		return imageNameAfter;
-	}
-
-	public void setImageNameAfter(String imageNameAfter) {
-		this.imageNameAfter = imageNameAfter;
-	}
-
+	
 	public String getAnswer1() {
 		return answer1;
 	}
@@ -85,5 +75,6 @@ public class QuestionDTO {
 	public void setCorrectAnswer(String correctAnswer) {
 		this.correctAnswer = correctAnswer;
 	}
+
 		
 }

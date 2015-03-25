@@ -1,9 +1,126 @@
 package com.guesswhat.server.persistence.jpa.dao;
 
-public interface EntityDAO<T> {
-	void save(T t);
-	void update(T t);
-	void remove(T t);
-	T find(T t);
-	T find(Long id);
+import java.util.List;
+
+import javax.jdo.JDOHelper;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
+
+import com.google.appengine.api.datastore.Key;
+import com.guesswhat.server.persistence.jpa.entity.Entity;
+
+public abstract class EntityDAO<T extends Entity> {
+	public static final PersistenceManagerFactory pmfInstance = JDOHelper
+			.getPersistenceManagerFactory("transactions-optional");
+	
+	public abstract void update(T t);
+	public abstract Class getEntityClass();
+	
+	public static PersistenceManagerFactory getPersistenceManagerFactory() {
+		return pmfInstance;
+	}
+	
+	public void save(T entity) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		try {
+			pm.makePersistent(entity);
+		} finally {
+			pm.close();
+		}
+	}
+	
+	public void remove(T entity) {
+		remove(entity.getKey());
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void remove(Key key) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		try {
+			pm.currentTransaction().begin();
+			
+			T entity = (T) pm.getObjectById(getEntityClass(), key);
+			pm.deletePersistent(entity);
+
+			pm.currentTransaction().commit();
+		} catch (Exception ex) {
+			pm.currentTransaction().rollback();
+			throw new RuntimeException(ex);
+		} finally {
+			pm.close();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void remove(Long id) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		try {
+			pm.currentTransaction().begin();
+			
+			T entity = (T) pm.getObjectById(getEntityClass(), id);
+			pm.deletePersistent(entity);
+
+			pm.currentTransaction().commit();
+		} catch (Exception ex) {
+			pm.currentTransaction().rollback();
+			throw new RuntimeException(ex);
+		} finally {
+			pm.close();
+		}
+	}
+	
+	public T find(T entity) {
+		return find(entity.getKey());
+	}
+	
+	@SuppressWarnings("unchecked")
+	public T find(Key key) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		T entity = null;
+		try {
+			entity = (T) pm.getObjectById(getEntityClass(), key);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			pm.close();
+		}
+		
+		return entity;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public T find(Long id) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		T entity = null;
+		try {
+			entity = (T) pm.getObjectById(getEntityClass(), id);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			pm.close();
+		}
+		
+		return entity;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<T> findAll() {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+        List<T> results = null;
+        Query q = pm.newQuery(getEntityClass());
+        try {
+            results = (List<T>) q.execute();
+        } finally {
+            q.closeAll();
+        }
+        return results;
+	}
+		
 }

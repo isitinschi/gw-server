@@ -4,22 +4,11 @@ import java.util.List;
 
 import javax.jdo.PersistenceManager;
 
-import com.guesswhat.server.persistence.jpa.jdo.EntityJDO;
-import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
+import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 
-public class RecordDAOImpl extends EntityJDO implements RecordDAO {
+public class RecordDAOImpl extends EntityDAO<Record> {
 
-	@Override
-	public void save(Record record) {
-		PersistenceManager pm = getPersistenceManagerFactory()
-				.getPersistenceManager();
-		try {
-			pm.makePersistent(record);
-		} finally {
-			pm.close();
-		}
-	}
 
 	@Override
 	public void update(Record record) {
@@ -31,7 +20,7 @@ public class RecordDAOImpl extends EntityJDO implements RecordDAO {
 
 		try {
 			pm.currentTransaction().begin();
-			record = pm.getObjectById(Record.class, record.getId());
+			record = pm.getObjectById(Record.class, record.getKey());
 			record.setUserId(userId);
 			record.setUserName(userName);
 			record.setRecordPoints(recordPoints);
@@ -44,51 +33,17 @@ public class RecordDAOImpl extends EntityJDO implements RecordDAO {
 			pm.close();
 		}
 	}
-
-	@Override
-	public void remove(Record record) {
-		PersistenceManager pm = getPersistenceManagerFactory()
-				.getPersistenceManager();
-		try {
-			pm.currentTransaction().begin();
-			
-			record = pm.getObjectById(Record.class, record.getId());
-			pm.deletePersistent(record);
-
-			pm.currentTransaction().commit();
-		} catch (Exception ex) {
-			pm.currentTransaction().rollback();
-			throw new RuntimeException(ex);
-		} finally {
-			pm.close();
-		}
-	}
-
-	@Override
-	public Record find(Record record) {
-		return find(record.getId());
-	}
-
-	@Override
-	public Record find(Long id) {
-		PersistenceManager pm = getPersistenceManagerFactory()
-				.getPersistenceManager();
-		Record record = null;
-		try {
-			record = pm.getObjectById(Record.class, id);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
-		} finally {
-			pm.close();
-		}
-		
-		return record;
-	}
 	
 	@Override
+	public Class getEntityClass() {
+		return Record.class;
+	}
+	
+	
 	public List<Record> findTop() {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 	
 }
