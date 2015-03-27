@@ -2,8 +2,8 @@ package com.guesswhat.server.persistence.jpa.dao.impl;
 
 import javax.jdo.PersistenceManager;
 
+import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
-import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
 
 public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
@@ -13,8 +13,8 @@ public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
 		
-		ImageHolder imageQuestion = questionIncubator.getImageQuestion();
-		ImageHolder imageAnswer = questionIncubator.getImageAnswer();
+		Key imageQuestion = questionIncubator.getImageQuestion();
+		Key imageAnswer = questionIncubator.getImageAnswer();
 		String answer1 = questionIncubator.getAnswer1();
 		String answer2 = questionIncubator.getAnswer2();
 		String answer3 = questionIncubator.getAnswer3();

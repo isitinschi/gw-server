@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.core.GenericEntity;
 
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Question;
@@ -15,7 +16,7 @@ import com.guesswhat.server.services.rs.face.QuestionService;
 public class QuestionServiceImpl implements QuestionService {
 
 	@Override
-	public List<QuestionDTO> findQuestions() {
+	public GenericEntity<List<QuestionDTO>> findQuestions() {
 		List<Question> questions = EntityFactory.getInstance().getQuestionDAO().findAll();
 		List<QuestionDTO> questionsDTO = new ArrayList<QuestionDTO>();
 		for (Question question : questions) {
@@ -23,7 +24,7 @@ public class QuestionServiceImpl implements QuestionService {
 			questionsDTO.add(questionDTO);
 		}
 		
-		return questionsDTO;
+		return new GenericEntity<List<QuestionDTO>>(questionsDTO) {};
 	}
 
 	@Override

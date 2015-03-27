@@ -1,65 +1,33 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+import com.google.appengine.api.datastore.Key;
+
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class ImageHolder extends Entity {
+public class ImageHolder {
 
+	@PrimaryKey
+	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+	private Key key;
 	@Persistent
-	private Image xxhdpiImage;
+	private Key xxhdpiImage;
 	@Persistent
-	private Image xhdpiImage;
+	private Key xhdpiImage;
 	@Persistent
-	private Image hdpiImage;
+	private Key hdpiImage;
 	@Persistent
-	private Image mdpiImage;
+	private Key mdpiImage;
 	@Persistent
-	private Image ldpiImage;
+	private Key ldpiImage;
 
 	public ImageHolder() {
 		
-	}
-
-	public Image getXxhdpiImage() {
-		return xxhdpiImage;
-	}
-
-	public void setXxhdpiImage(Image xxhdpiImage) {
-		this.xxhdpiImage = xxhdpiImage;
-	}
-
-	public Image getXhdpiImage() {
-		return xhdpiImage;
-	}
-
-	public void setXhdpiImage(Image xhdpiImage) {
-		this.xhdpiImage = xhdpiImage;
-	}
-
-	public Image getHdpiImage() {
-		return hdpiImage;
-	}
-
-	public void setHdpiImage(Image hdpiImage) {
-		this.hdpiImage = hdpiImage;
-	}
-
-	public Image getMdpiImage() {
-		return mdpiImage;
-	}
-
-	public void setMdpiImage(Image mdpiImage) {
-		this.mdpiImage = mdpiImage;
-	}
-
-	public Image getLdpiImage() {
-		return ldpiImage;
-	}
-
-	public void setLdpiImage(Image ldpiImage) {
-		this.ldpiImage = ldpiImage;
 	}
 
 	public boolean isFull() {
@@ -70,6 +38,52 @@ public class ImageHolder extends Entity {
 		return false;
 	}
 
-	
+	public Key getKey() {
+		return key;
+	}
+
+	public void setKey(Key key) {
+		this.key = key;
+	}
+
+	public Key getXxhdpiImage() {
+		return xxhdpiImage;
+	}
+
+	public void setXxhdpiImage(Key xxhdpiImage) {
+		this.xxhdpiImage = xxhdpiImage;
+	}
+
+	public Key getXhdpiImage() {
+		return xhdpiImage;
+	}
+
+	public void setXhdpiImage(Key xhdpiImage) {
+		this.xhdpiImage = xhdpiImage;
+	}
+
+	public Key getHdpiImage() {
+		return hdpiImage;
+	}
+
+	public void setHdpiImage(Key hdpiImage) {
+		this.hdpiImage = hdpiImage;
+	}
+
+	public Key getMdpiImage() {
+		return mdpiImage;
+	}
+
+	public void setMdpiImage(Key mdpiImage) {
+		this.mdpiImage = mdpiImage;
+	}
+
+	public Key getLdpiImage() {
+		return ldpiImage;
+	}
+
+	public void setLdpiImage(Key ldpiImage) {
+		this.ldpiImage = ldpiImage;
+	}
 
 }

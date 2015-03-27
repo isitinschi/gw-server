@@ -2,8 +2,8 @@ package com.guesswhat.server.persistence.jpa.dao.impl;
 
 import javax.jdo.PersistenceManager;
 
+import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
-import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 
 public class ImageHolderDAOImpl extends EntityDAO<ImageHolder> {
@@ -13,11 +13,11 @@ public class ImageHolderDAOImpl extends EntityDAO<ImageHolder> {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
 		
-		Image xxhdpiImage = imageHolder.getXxhdpiImage();
-		Image xhdpiImage = imageHolder.getXhdpiImage();
-		Image hdpiImage = imageHolder.getHdpiImage();
-		Image mdpiImage = imageHolder.getMdpiImage();
-		Image ldpiImage = imageHolder.getLdpiImage();
+		Key xxhdpiImage = imageHolder.getXxhdpiImage();
+		Key xhdpiImage = imageHolder.getXhdpiImage();
+		Key hdpiImage = imageHolder.getHdpiImage();
+		Key mdpiImage = imageHolder.getMdpiImage();
+		Key ldpiImage = imageHolder.getLdpiImage();
 
 		try {
 			pm.currentTransaction().begin();

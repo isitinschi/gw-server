@@ -1,18 +1,24 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Question extends Entity {
+public class Question {
 
+	@PrimaryKey
+	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+	private Key key;
 	@Persistent
-	private ImageHolder imageQuestion;
+	private Key imageQuestion;
 	@Persistent
-	private ImageHolder imageAnswer;
+	private Key imageAnswer;
 	@Persistent
 	private String answer1;
 	@Persistent
@@ -46,19 +52,19 @@ public class Question extends Entity {
 		this.correctAnswer = questionDTO.getCorrectAnswer();
 	}
 
-	public ImageHolder getImageQuestion() {
+	public Key getImageQuestion() {
 		return imageQuestion;
 	}
 
-	public void setImageQuestion(ImageHolder imageQuestion) {
+	public void setImageQuestion(Key imageQuestion) {
 		this.imageQuestion = imageQuestion;
 	}
 
-	public ImageHolder getImageAnswer() {
+	public Key getImageAnswer() {
 		return imageAnswer;
 	}
 
-	public void setImageAnswer(ImageHolder imageAnswer) {
+	public void setImageAnswer(Key imageAnswer) {
 		this.imageAnswer = imageAnswer;
 	}
 
@@ -100,6 +106,14 @@ public class Question extends Entity {
 
 	public void setCorrectAnswer(String correctAnswer) {
 		this.correctAnswer = correctAnswer;
+	}
+	
+	public Key getKey() {
+		return key;
+	}
+
+	public void setKey(Key key) {
+		this.key = key;
 	}
 	
 }

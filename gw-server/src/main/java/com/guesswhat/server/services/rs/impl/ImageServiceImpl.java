@@ -3,51 +3,65 @@ package com.guesswhat.server.services.rs.impl;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 
 import org.apache.commons.io.IOUtils;
 
 import com.google.appengine.api.datastore.Blob;
+import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
-import com.guesswhat.server.persistence.jpa.dao.ImageType;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
+import com.guesswhat.server.services.rs.dto.ImageType;
 import com.guesswhat.server.services.rs.face.ImageService;
-import com.sun.jersey.multipart.BodyPartEntity;
-import com.sun.jersey.multipart.MultiPart;
 
 @Path("/images")
 public class ImageServiceImpl implements ImageService {
 
 	@Override
-	public void createQuestionImage(Long questionId, String imageType, MultiPart multiPart) {
+	public void createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
+		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageQuestion() == null) {
-			ImageHolder imageHolder = new ImageHolder();
-			questionIncubator.setImageQuestion(imageHolder);
+			imageHolder = new ImageHolder();
+			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
+			questionIncubator.setImageQuestion(imageHolder.getKey());
+			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		} else {
+			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestion());
+		}
+		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
+			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
+		}
+		if (!buildQuestion(questionIncubator)) {
 			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
 		}
-		buildImageHolder(questionIncubator.getImageQuestion(), imageType, multiPart);
-		buildQuestion(questionIncubator);		
 	}
 	
 	@Override
-	public void createAnswerImage(Long questionId, String imageType, MultiPart multiPart) {
+	public void createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
+		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageAnswer() == null) {
-			ImageHolder imageHolder = new ImageHolder();
-			questionIncubator.setImageAnswer(imageHolder);
+			imageHolder = new ImageHolder();
+			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
+			questionIncubator.setImageAnswer(imageHolder.getKey());
+			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		} else {
+			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswer());
+		}
+		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
+			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
+		}
+		if (!buildQuestion(questionIncubator)) {
 			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
 		}
-		buildImageHolder(questionIncubator.getImageAnswer(), imageType, multiPart);
-		buildQuestion(questionIncubator);	
 	}
 
-	private void buildImageHolder(ImageHolder imageHolder, String imageType, MultiPart multiPart) {
-		BodyPartEntity bpe = (BodyPartEntity) multiPart.getBodyParts().get(0).getEntity();
-	    InputStream source = bpe.getInputStream();
+	private boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
 	    Blob blob = null;
 	    try {
 			blob = new Blob(IOUtils.toByteArray(source));
@@ -56,30 +70,38 @@ public class ImageServiceImpl implements ImageService {
 		}
 	    Image image = new Image(blob);
 	    EntityFactory.getInstance().getImageDAO().save(image);
+	    Key imageKey = image.getKey();
 	    
 	    switch(ImageType.valueOf(imageType)) {
-	    	case XXHDPI:	imageHolder.setXxhdpiImage(image);
+	    	case XXHDPI:	imageHolder.setXxhdpiImage(imageKey);
 	    					break;
-	    	case XHDPI:		imageHolder.setXhdpiImage(image);
+	    	case XHDPI:		imageHolder.setXhdpiImage(imageKey);
 							break;
-	    	case HDPI:		imageHolder.setHdpiImage(image);
+	    	case HDPI:		imageHolder.setHdpiImage(imageKey);
 							break;
-	    	case MDPI:		imageHolder.setMdpiImage(image);
+	    	case MDPI:		imageHolder.setMdpiImage(imageKey);
 							break;
-	    	case LDPI:		imageHolder.setLdpiImage(image);
+	    	case LDPI:		imageHolder.setLdpiImage(imageKey);
 							break;
+			default:		return false;
 	    }
 	    
-	    EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
+	    return true;	    
 	}
 	
-	private void buildQuestion(QuestionIncubator questionIncubator) {
+	private boolean buildQuestion(QuestionIncubator questionIncubator) {
 		if (questionIncubator.getImageQuestion() != null && questionIncubator.getImageAnswer() != null) {
-			if (questionIncubator.getImageQuestion().isFull() && questionIncubator.getImageAnswer().isFull()) {
+			ImageHolder imageHolderQuestion = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestion());
+			ImageHolder imageHolderAnswer = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswer());
+			if (imageHolderQuestion.isFull() && imageHolderAnswer.isFull()) {
 				Question question = new Question(questionIncubator);
 				EntityFactory.getInstance().getQuestionDAO().save(question);
+				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());
+				return true ;
 			}
 		}
+		
+		return false;		
 	}
 
 	@Override

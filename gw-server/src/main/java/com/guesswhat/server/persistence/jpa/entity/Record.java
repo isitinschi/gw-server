@@ -1,14 +1,20 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.services.rs.dto.RecordDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Record extends Entity {
+public class Record {
 
+	@PrimaryKey
+	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+	private Key key;
 	private int userId;
 	@Persistent
 	private String userName;
@@ -55,5 +61,13 @@ public class Record extends Entity {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}	
+	
+	public Key getKey() {
+		return key;
+	}
+
+	public void setKey(Key key) {
+		this.key = key;
+	}
 	
 }

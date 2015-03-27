@@ -9,9 +9,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 
-import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 public interface QuestionService {
@@ -32,12 +32,12 @@ public interface QuestionService {
 	void updateQuestion(QuestionDTO questionDTO);
 
 	@POST
-	@Path("find/{questionId}")
+	@Path("/find/{questionId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	QuestionDTO findQuestion(@PathParam("questionId") Long questionId);
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/findall")
-	List<QuestionDTO> findQuestions();
+	GenericEntity<List<QuestionDTO>> findQuestions();
 }

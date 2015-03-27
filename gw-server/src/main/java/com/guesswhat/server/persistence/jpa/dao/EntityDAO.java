@@ -1,5 +1,6 @@
 package com.guesswhat.server.persistence.jpa.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.jdo.JDOHelper;
@@ -8,15 +9,14 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 import com.google.appengine.api.datastore.Key;
-import com.guesswhat.server.persistence.jpa.entity.Entity;
 
-public abstract class EntityDAO<T extends Entity> {
+public abstract class EntityDAO<T> {
 	public static final PersistenceManagerFactory pmfInstance = JDOHelper
 			.getPersistenceManagerFactory("transactions-optional");
 	
 	public abstract void update(T t);
 	public abstract Class getEntityClass();
-	
+
 	public static PersistenceManagerFactory getPersistenceManagerFactory() {
 		return pmfInstance;
 	}
@@ -29,10 +29,6 @@ public abstract class EntityDAO<T extends Entity> {
 		} finally {
 			pm.close();
 		}
-	}
-	
-	public void remove(T entity) {
-		remove(entity.getKey());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -71,10 +67,6 @@ public abstract class EntityDAO<T extends Entity> {
 		} finally {
 			pm.close();
 		}
-	}
-	
-	public T find(T entity) {
-		return find(entity.getKey());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -120,6 +112,11 @@ public abstract class EntityDAO<T extends Entity> {
         } finally {
             q.closeAll();
         }
+        
+        if (results == null) {
+        	results = new ArrayList<T>();
+        }
+        
         return results;
 	}
 		
