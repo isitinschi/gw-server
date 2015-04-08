@@ -1,7 +1,5 @@
 package com.guesswhat.server.services.rs.face;
 
-import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
@@ -9,10 +7,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
+import com.guesswhat.server.services.rs.dto.QuestionDTOListWrapper;
 
 public interface QuestionService {
 
@@ -39,5 +37,5 @@ public interface QuestionService {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/findall")
-	GenericEntity<List<QuestionDTO>> findQuestions();
+	QuestionDTOListWrapper findQuestions();
 }

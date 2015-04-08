@@ -35,7 +35,7 @@ public class RecordDAOImpl extends EntityDAO<Record> {
 	}
 	
 	@Override
-	public Class getEntityClass() {
+	public Class<Record> getEntityClass() {
 		return Record.class;
 	}
 	

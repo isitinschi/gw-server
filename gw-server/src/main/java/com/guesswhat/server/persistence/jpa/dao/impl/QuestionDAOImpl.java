@@ -36,7 +36,7 @@ public class QuestionDAOImpl extends EntityDAO<Question> {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public Class<Question> getEntityClass() {
 		return Question.class;
 	}
 	

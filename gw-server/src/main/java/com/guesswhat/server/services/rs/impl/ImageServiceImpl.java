@@ -2,7 +2,9 @@ package com.guesswhat.server.services.rs.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 
@@ -10,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Key;
+import com.google.apphosting.api.ApiProxy.RequestTooLargeException;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
@@ -22,6 +25,7 @@ import com.guesswhat.server.services.rs.face.ImageService;
 public class ImageServiceImpl implements ImageService {
 
 	@Override
+	@RolesAllowed("WRITER")
 	public void createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
@@ -42,6 +46,7 @@ public class ImageServiceImpl implements ImageService {
 	}
 	
 	@Override
+	@RolesAllowed("WRITER")
 	public void createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
@@ -64,29 +69,49 @@ public class ImageServiceImpl implements ImageService {
 	private boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
 	    Blob blob = null;
 	    try {
-			blob = new Blob(IOUtils.toByteArray(source));
-		} catch (IOException e) {
+	    	byte[] bytes = IOUtils.toByteArray(source);
+			blob = new Blob(bytes);
+		
+		    Image image = new Image(blob);
+		    
+		    try {
+		    	EntityFactory.getInstance().getImageDAO().save(image);
+		    } catch (RequestTooLargeException e) {
+		    	// file is too big. Workaround:
+				int middle = bytes.length / 2;
+				byte[] bytes1 = Arrays.copyOfRange(bytes, 0, middle);
+				byte[] bytes2 = Arrays.copyOfRange(bytes, middle,  bytes.length);
+				Blob blob1 = new Blob(bytes1);
+				Blob blob2 = new Blob(bytes2);
+				image = new Image(blob1);
+				Image image2 = new Image(blob2);
+				EntityFactory.getInstance().getImageDAO().save(image2);
+				image.setSecondPart(image2.getKey().getId());
+				// try again :)
+				EntityFactory.getInstance().getImageDAO().save(image);
+		    }
+		    Key imageKey = image.getKey();
+		    
+		    switch(ImageType.valueOf(imageType)) {
+		    	case XXHDPI:	imageHolder.setXxhdpiImage(imageKey);
+		    					break;
+		    	case XHDPI:		imageHolder.setXhdpiImage(imageKey);
+								break;
+		    	case HDPI:		imageHolder.setHdpiImage(imageKey);
+								break;
+		    	case MDPI:		imageHolder.setMdpiImage(imageKey);
+								break;
+		    	case LDPI:		imageHolder.setLdpiImage(imageKey);
+								break;
+				default:		return false;
+		    }
+		    
+		    return true;
+		    
+	    } catch (IOException e) {
 			e.printStackTrace();
 		}
-	    Image image = new Image(blob);
-	    EntityFactory.getInstance().getImageDAO().save(image);
-	    Key imageKey = image.getKey();
-	    
-	    switch(ImageType.valueOf(imageType)) {
-	    	case XXHDPI:	imageHolder.setXxhdpiImage(imageKey);
-	    					break;
-	    	case XHDPI:		imageHolder.setXhdpiImage(imageKey);
-							break;
-	    	case HDPI:		imageHolder.setHdpiImage(imageKey);
-							break;
-	    	case MDPI:		imageHolder.setMdpiImage(imageKey);
-							break;
-	    	case LDPI:		imageHolder.setLdpiImage(imageKey);
-							break;
-			default:		return false;
-	    }
-	    
-	    return true;	    
+		return false;
 	}
 	
 	private boolean buildQuestion(QuestionIncubator questionIncubator) {
@@ -105,12 +130,14 @@ public class ImageServiceImpl implements ImageService {
 	}
 
 	@Override
+	@RolesAllowed("READER")
 	public String findQuestionImage(Long questionId, String imageType) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
+	@RolesAllowed("READER")
 	public String findAnswerImage(Long questionId, String imageType) {
 		// TODO Auto-generated method stub
 		return null;

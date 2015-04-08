@@ -38,7 +38,7 @@ public class ImageHolderDAOImpl extends EntityDAO<ImageHolder> {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public Class<ImageHolder> getEntityClass() {
 		return ImageHolder.class;
 	}
 	

@@ -42,7 +42,7 @@ public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
 	}
 	
 	@Override
-	public Class getEntityClass() {
+	public Class<QuestionIncubator> getEntityClass() {
 		return QuestionIncubator.class;
 	}
 	

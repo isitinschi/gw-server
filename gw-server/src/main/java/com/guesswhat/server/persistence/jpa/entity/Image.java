@@ -17,6 +17,8 @@ public class Image {
 	private Key key;
 	@Persistent
 	private Blob image;
+	@Persistent
+	private Long secondPart;
 
 	public Image() {
 
@@ -41,5 +43,13 @@ public class Image {
 
 	public void setKey(Key key) {
 		this.key = key;
+	}
+
+	public Long getSecondPart() {
+		return secondPart;
+	}
+
+	public void setSecondPart(Long secondPart) {
+		this.secondPart = secondPart;
 	}
 }

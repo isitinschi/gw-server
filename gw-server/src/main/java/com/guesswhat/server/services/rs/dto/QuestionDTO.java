@@ -1,10 +1,7 @@
 package com.guesswhat.server.services.rs.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.guesswhat.server.persistence.jpa.entity.Question;
 
-@XmlRootElement
 public class QuestionDTO {
 
 	private String id;

@@ -29,7 +29,7 @@ public class ImageDAOImpl extends EntityDAO<Image> {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public Class<Image> getEntityClass() {
 		return Image.class;
 	}
 	

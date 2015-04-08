@@ -9,13 +9,14 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.Query.Filter;
 
 public abstract class EntityDAO<T> {
 	public static final PersistenceManagerFactory pmfInstance = JDOHelper
 			.getPersistenceManagerFactory("transactions-optional");
 	
 	public abstract void update(T t);
-	public abstract Class getEntityClass();
+	public abstract Class<T> getEntityClass();
 
 	public static PersistenceManagerFactory getPersistenceManagerFactory() {
 		return pmfInstance;
@@ -31,7 +32,6 @@ public abstract class EntityDAO<T> {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void remove(Key key) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
@@ -50,7 +50,6 @@ public abstract class EntityDAO<T> {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void remove(Long id) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
@@ -69,7 +68,6 @@ public abstract class EntityDAO<T> {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public T find(Key key) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
@@ -85,7 +83,6 @@ public abstract class EntityDAO<T> {
 		return entity;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public T find(Long id) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
@@ -119,5 +116,26 @@ public abstract class EntityDAO<T> {
         
         return results;
 	}
+	
+	public T findByFilter(String filter) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+        List<T> results = null;
+        
+        Query q = pm.newQuery(getEntityClass());
+        q.setFilter(filter);
+        try {
+            results = (List<T>) q.execute();
+        } finally {
+            q.closeAll();
+        }
+        
+        if (results == null || results.isEmpty()) {
+        	return null;
+        }
+
+        return results.get(0);
+	}
+	
 		
 }
