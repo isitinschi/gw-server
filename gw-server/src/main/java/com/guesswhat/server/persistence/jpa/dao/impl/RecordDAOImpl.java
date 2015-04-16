@@ -1,29 +1,30 @@
 package com.guesswhat.server.persistence.jpa.dao.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
+import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 
-public class RecordDAOImpl extends EntityDAO<Record> {
+public class RecordDAOImpl extends RecordDAO {
 
 
 	@Override
 	public void update(Record record) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
-		int userId = record.getUserId();
-		String userName = record.getUserName();
-		int recordPoints = record.getRecordPoints();
+		String userId = record.getUserId();
+		int points = record.getPoints();
 
 		try {
 			pm.currentTransaction().begin();
 			record = pm.getObjectById(Record.class, record.getKey());
 			record.setUserId(userId);
-			record.setUserName(userName);
-			record.setRecordPoints(recordPoints);
+			record.setPoints(points);
 			pm.makePersistent(record);
 			pm.currentTransaction().commit();
 		} catch (Exception ex) {
@@ -41,8 +42,71 @@ public class RecordDAOImpl extends EntityDAO<Record> {
 	
 	
 	public List<Record> findTop() {
-		// TODO Auto-generated method stub
-		return null;
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		
+        List<Record> results = null;
+        Query q = pm.newQuery(getEntityClass());
+        q.setOrdering("points descending");
+        q.setRange(0, 10);
+        
+        try {
+        	pm.currentTransaction().begin();
+            results = (List<Record>) q.execute();         
+        } finally {
+        	pm.currentTransaction().commit();
+            q.closeAll();
+            pm.close();
+        }        
+        
+        if (results == null) {
+        	results = new ArrayList<Record>();
+        }
+        
+        return results;
+	}
+
+	@Override
+	public int findRecordPlace(Record record) {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+		
+        List<Integer> results = null;
+        Query q = pm.newQuery(getEntityClass());
+        q.setGrouping("points");
+        q.setResult("points");
+        
+        List<Integer> pointList = null;
+        try {
+        	pm.currentTransaction().begin();
+            results = (List<Integer>) q.execute();
+            
+            if (results == null) {
+            	return 0;
+            }
+            
+            pointList = new ArrayList<Integer>(results);
+        } finally {
+        	pm.currentTransaction().commit();
+            q.closeAll();
+            pm.close();
+        }
+        
+        Collections.sort(pointList, Collections.reverseOrder());
+        int place = 1;
+        for (Integer points : pointList) {
+        	if (record.getPoints() == points) {
+        		return place;
+        	}
+        	++ place;
+        }
+        
+		return 0;
+	}
+
+	@Override
+	public Record findByUserId(String userId) {
+		return findByFilter("userId == '" + userId + "'");
 	}
 
 	

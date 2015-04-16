@@ -1,6 +1,7 @@
 package com.guesswhat.server.persistence.jpa.cfg;
 
 import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
+import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
 import com.guesswhat.server.persistence.jpa.dao.UserDAO;
 import com.guesswhat.server.persistence.jpa.dao.impl.ImageDAOImpl;
 import com.guesswhat.server.persistence.jpa.dao.impl.ImageHolderDAOImpl;
@@ -22,7 +23,7 @@ public class EntityFactory {
 	private EntityDAO<Question> questionDAO = null;
 	private UserDAO userDAO = null;
 	private EntityDAO<QuestionIncubator> questionIncubatorDAO = null;
-	private EntityDAO<Record> recordDAO = null;
+	private RecordDAO recordDAO = null;
 	private EntityDAO<Image> imageDAO = null;
 	private EntityDAO<ImageHolder> imageHolderDAO = null;
 	
@@ -47,7 +48,7 @@ public class EntityFactory {
 		return questionDAO;
 	}
 
-	public EntityDAO<Record> getRecordDAO() {
+	public RecordDAO getRecordDAO() {
 		return recordDAO;
 	}
 

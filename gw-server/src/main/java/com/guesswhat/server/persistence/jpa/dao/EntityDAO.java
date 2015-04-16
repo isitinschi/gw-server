@@ -9,7 +9,6 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query.Filter;
 
 public abstract class EntityDAO<T> {
 	public static final PersistenceManagerFactory pmfInstance = JDOHelper
@@ -41,10 +40,38 @@ public abstract class EntityDAO<T> {
 			T entity = (T) pm.getObjectById(getEntityClass(), key);
 			pm.deletePersistent(entity);
 
+		} finally {
 			pm.currentTransaction().commit();
-		} catch (Exception ex) {
-			pm.currentTransaction().rollback();
-			throw new RuntimeException(ex);
+			pm.close();
+		}
+	}
+	
+	public void removeAll() {
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();
+        Query q = pm.newQuery(getEntityClass());
+        try {
+        	pm.currentTransaction().begin();
+        	List<T> results = (List<T>) q.execute();
+        	for (T entity : results) {
+				pm.deletePersistent(entity);				
+			}
+        } finally {
+        	pm.currentTransaction().commit();
+            q.closeAll();
+            pm.close();
+        }   
+	}
+	
+	public void removeAll(List<T> entities) {		
+		PersistenceManager pm = getPersistenceManagerFactory()
+				.getPersistenceManager();		
+		
+		try {			
+			for (T entity : entities) {
+				pm.makePersistent(entity);
+				pm.deletePersistent(entity);				
+			}
 		} finally {
 			pm.close();
 		}
@@ -54,16 +81,11 @@ public abstract class EntityDAO<T> {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
 		try {
-			pm.currentTransaction().begin();
-			
+			pm.currentTransaction().begin();			
 			T entity = (T) pm.getObjectById(getEntityClass(), id);
 			pm.deletePersistent(entity);
-
-			pm.currentTransaction().commit();
-		} catch (Exception ex) {
-			pm.currentTransaction().rollback();
-			throw new RuntimeException(ex);
 		} finally {
+			pm.currentTransaction().commit();
 			pm.close();
 		}
 	}
@@ -74,13 +96,12 @@ public abstract class EntityDAO<T> {
 		T entity = null;
 		try {
 			entity = (T) pm.getObjectById(getEntityClass(), key);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
+			
+			return entity;
 		} finally {
 			pm.close();
 		}
 		
-		return entity;
 	}
 	
 	public T find(Long id) {
@@ -89,26 +110,30 @@ public abstract class EntityDAO<T> {
 		T entity = null;
 		try {
 			entity = (T) pm.getObjectById(getEntityClass(), id);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
+			
+			return entity;
 		} finally {
 			pm.close();
 		}
 		
-		return entity;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public List<T> findAll() {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
+		
         List<T> results = null;
         Query q = pm.newQuery(getEntityClass());
+        
         try {
-            results = (List<T>) q.execute();
+        	pm.currentTransaction().begin();
+            results = (List<T>) q.execute();         
         } finally {
+        	pm.currentTransaction().commit();
             q.closeAll();
-        }
+            pm.close();
+        }        
         
         if (results == null) {
         	results = new ArrayList<T>();
@@ -120,22 +145,25 @@ public abstract class EntityDAO<T> {
 	public T findByFilter(String filter) {
 		PersistenceManager pm = getPersistenceManagerFactory()
 				.getPersistenceManager();
-        List<T> results = null;
-        
+		
+        List<T> results = null;        
         Query q = pm.newQuery(getEntityClass());
-        q.setFilter(filter);
         try {
+        	q.setFilter(filter);
+        	
+        	pm.currentTransaction().begin();
             results = (List<T>) q.execute();
         } finally {
+        	pm.currentTransaction().commit();            
             q.closeAll();
+            pm.close();
         }
         
         if (results == null || results.isEmpty()) {
         	return null;
         }
-
+        
         return results.get(0);
-	}
-	
+	}	
 		
 }

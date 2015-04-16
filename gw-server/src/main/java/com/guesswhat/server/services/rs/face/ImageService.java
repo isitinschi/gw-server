@@ -10,26 +10,27 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 
 public interface ImageService {
 
 	@PUT
 	@Path("/create/question/{questionId}/{imageType}")
 	@Consumes("application/octet-stream")
-	void createQuestionImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType, @Context HttpServletRequest request, InputStream fileInputStream);
+	Response createQuestionImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType, @Context HttpServletRequest request, InputStream fileInputStream);
 	
 	@PUT
 	@Path("/create/answer/{questionId}/{imageType}")
 	@Consumes("application/octet-stream")
-	void createAnswerImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType, @Context HttpServletRequest request, InputStream fileInputStream);
+	Response createAnswerImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType, @Context HttpServletRequest request, InputStream fileInputStream);
 	
 	@POST
 	@Path("/find/question/{questionId}/{imageType}")
-	@Produces("multipart/mixed")
-	String findQuestionImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType);
+	@Produces("application/octet-stream")
+	Response findQuestionImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType);
 	
 	@POST
 	@Path("/find/answer/{questionId}/{imageType}")
-	@Produces("multipart/mixed")
-	String findAnswerImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType);
+	@Produces("application/octet-stream")
+	Response findAnswerImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType);
 }

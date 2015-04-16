@@ -7,7 +7,6 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
-import com.guesswhat.server.services.rs.dto.RecordDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Record {
@@ -15,59 +14,42 @@ public class Record {
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
-	private int userId;
+	private String userId;
 	@Persistent
-	private String userName;
-	@Persistent
-	private int recordPoints;
+	private int points;
 	
 	public Record() {
 		
 	}
 
-	public Record(int userId, String userName, int recordPoints) {
+	public Record(String userId, int points) {
 		super();
 		this.userId = userId;
-		this.userName = userName;
-		this.recordPoints = recordPoints;
+		this.points = points;
 	}
 
-	public Record(RecordDTO recordDTO) {
-		this.userId = recordDTO.getUserId();
-		this.userName = recordDTO.getUserName();
-		this.recordPoints = recordDTO.getRecordPoints();
-	}	
-
-	public int getUserId() {
-		return userId;
-	}
-
-	public void setUserId(int userId) {
-		this.userId = userId;
-	}
-
-	public int getRecordPoints() {
-		return recordPoints;
-	}
-
-	public void setRecordPoints(int recordPoints) {
-		this.recordPoints = recordPoints;
-	}
-
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}	
-	
 	public Key getKey() {
 		return key;
 	}
 
 	public void setKey(Key key) {
 		this.key = key;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public int getPoints() {
+		return points;
+	}
+
+	public void setPoints(int points) {
+		this.points = points;
 	}
 	
 }

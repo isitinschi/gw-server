@@ -18,13 +18,11 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.core.Headers;
-import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.util.Base64;
 
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.User;
-import com.guesswhat.server.persistence.jpa.entity.UserRole;
  
 /**
  * This interceptor verify the access permissions for a user
@@ -113,7 +111,7 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
         }
         
         String userRole = user.getRole();
-        if(rolesSet.contains(userRole))
+        if (rolesSet.contains(userRole))
         {
             isAllowed = true;
         }

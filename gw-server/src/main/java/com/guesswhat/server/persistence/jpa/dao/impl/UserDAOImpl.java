@@ -2,7 +2,7 @@ package com.guesswhat.server.persistence.jpa.dao.impl;
 
 import com.guesswhat.server.persistence.jpa.dao.UserDAO;
 import com.guesswhat.server.persistence.jpa.entity.User;
-import com.guesswhat.server.persistence.jpa.entity.UserRole;
+import com.guesswhat.server.services.security.cfg.UserRole;
 
 public class UserDAOImpl extends UserDAO {
 

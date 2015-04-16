@@ -80,8 +80,8 @@
 			<version>${jersey.target.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.bundles</groupId>
-			<artifactId>jaxrs-ri</artifactId>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
 			<version>${jersey.target.version}</version>
 		</dependency>
 		<dependency>
@@ -121,6 +121,14 @@
 			<groupId>net.sf.scannotation</groupId>
 			<artifactId>scannotation</artifactId>
 			<version>1.0.2</version>
+		</dependency>
+
+		<!-- JUNIT -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

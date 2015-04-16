@@ -7,6 +7,7 @@ import java.util.Arrays;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 
@@ -26,7 +27,7 @@ public class ImageServiceImpl implements ImageService {
 
 	@Override
 	@RolesAllowed("WRITER")
-	public void createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
+	public Response createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageQuestion() == null) {
@@ -40,14 +41,15 @@ public class ImageServiceImpl implements ImageService {
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
 			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
 		}
-		if (!buildQuestion(questionIncubator)) {
-			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
-		}
+		
+		EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		
+		return Response.ok().build();
 	}
 	
 	@Override
 	@RolesAllowed("WRITER")
-	public void createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
+	public Response createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageAnswer() == null) {
@@ -61,12 +63,13 @@ public class ImageServiceImpl implements ImageService {
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
 			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
 		}
-		if (!buildQuestion(questionIncubator)) {
-			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
-		}
+		
+		EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		
+		return Response.ok().build();
 	}
 
-	private boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
+	public static boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
 	    Blob blob = null;
 	    try {
 	    	byte[] bytes = IOUtils.toByteArray(source);
@@ -113,34 +116,85 @@ public class ImageServiceImpl implements ImageService {
 		}
 		return false;
 	}
-	
-	private boolean buildQuestion(QuestionIncubator questionIncubator) {
-		if (questionIncubator.getImageQuestion() != null && questionIncubator.getImageAnswer() != null) {
-			ImageHolder imageHolderQuestion = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestion());
-			ImageHolder imageHolderAnswer = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswer());
-			if (imageHolderQuestion.isFull() && imageHolderAnswer.isFull()) {
-				Question question = new Question(questionIncubator);
-				EntityFactory.getInstance().getQuestionDAO().save(question);
-				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());
-				return true ;
+
+	@Override
+	@RolesAllowed("READER")
+	public Response findQuestionImage(Long questionId, String imageType) {
+		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		if (question != null) {
+			Key imageHolderKey = question.getImageQuestion();
+			byte [] bytes = findImage(imageHolderKey, imageType);
+			
+			if (bytes != null) {
+				return Response.ok(bytes).build();				
 			}
+			
+		}
+
+		return Response.noContent().build();
+	}
+
+	@Override
+	@RolesAllowed("READER")
+	public Response findAnswerImage(Long questionId, String imageType) {
+		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		if (question != null) {
+			Key imageHolderKey = question.getImageAnswer();
+			byte [] bytes = findImage(imageHolderKey, imageType);
+			
+			if (bytes != null) {
+				return Response.ok(bytes).build();			
+			}
+			
+		}
+
+		return Response.noContent().build();
+	}
+	
+	private byte[] findImage(Key imageHolderKey, String imageType) {
+		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderKey);
+		Key imageKey = null;
+		
+		switch(ImageType.valueOf(imageType)) {
+	    	case XXHDPI:	imageKey = imageHolder.getXxhdpiImage();
+	    					break;
+	    	case XHDPI:		imageKey = imageHolder.getXhdpiImage();
+							break;
+	    	case HDPI:		imageKey = imageHolder.getHdpiImage();
+							break;
+	    	case MDPI:		imageKey = imageHolder.getMdpiImage();
+							break;
+	    	case LDPI:		imageKey = imageHolder.getLdpiImage();
+							break;
 		}
 		
-		return false;		
+		if (imageKey == null) {
+			return null;
+		}
+		
+		Image image = EntityFactory.getInstance().getImageDAO().find(imageKey);
+		Image imageSecondPart = null;
+		if (image.getSecondPart() != null) {
+			imageSecondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
+		}
+		
+		byte [] bytes = null;
+		if (imageSecondPart != null) {
+			bytes = concat(image.getImage().getBytes(), imageSecondPart.getImage().getBytes());
+		} else {
+			bytes = image.getImage().getBytes();
+		}
+		
+		return bytes;
 	}
-
-	@Override
-	@RolesAllowed("READER")
-	public String findQuestionImage(Long questionId, String imageType) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	@RolesAllowed("READER")
-	public String findAnswerImage(Long questionId, String imageType) {
-		// TODO Auto-generated method stub
-		return null;
+	
+	private byte[] concat(byte[] a, byte[] b) {
+		   int aLen = a.length;
+		   int bLen = b.length;
+		   byte[] c= new byte[aLen+bLen];
+		   System.arraycopy(a, 0, c, 0, aLen);
+		   System.arraycopy(b, 0, c, aLen, bLen);
+		   return c;
 	}
 
 }

@@ -5,18 +5,19 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 
 public interface SecurityService {
 
 	@POST
 	@Path("/create")
-	void createUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("role") String role);
+	Response createUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("role") String role);
 	
 	@POST
 	@Path("/create/admin")
-	void createAdmin(@FormParam("username") String username, @FormParam("password") String password);
+	Response createAdmin(@FormParam("username") String username, @FormParam("password") String password);
 	
 	@DELETE
 	@Path("/delete/{username}")
-	void deleteUser(@PathParam("username") String username);
+	Response deleteUser(@PathParam("username") String username);
 }

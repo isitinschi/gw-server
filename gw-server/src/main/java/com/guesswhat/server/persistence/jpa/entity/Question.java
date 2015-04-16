@@ -7,6 +7,7 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
+import com.guesswhat.server.services.rs.backup.dto.QuestionBackupDTO;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
@@ -50,6 +51,14 @@ public class Question {
 		this.answer3 = questionDTO.getAnswer3();
 		this.answer4 = questionDTO.getAnswer4();
 		this.correctAnswer = questionDTO.getCorrectAnswer();
+	}
+
+	public Question(QuestionBackupDTO questionBackupDTO) {
+		this.answer1 = questionBackupDTO.getAnswer1();
+		this.answer2 = questionBackupDTO.getAnswer2();
+		this.answer3 = questionBackupDTO.getAnswer3();
+		this.answer4 = questionBackupDTO.getAnswer4();
+		this.correctAnswer = questionBackupDTO.getCorrectAnswer();
 	}
 
 	public Key getImageQuestion() {

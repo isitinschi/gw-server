@@ -8,9 +8,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
-import com.guesswhat.server.services.rs.dto.QuestionDTOListWrapper;
 
 public interface QuestionService {
 
@@ -18,24 +18,29 @@ public interface QuestionService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/create")
-	String createQuestion(QuestionDTO questionDTO);
+	Response createQuestion(QuestionDTO questionDTO);
+	
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("/build/{questionId}")
+	Response buildQuestion(@PathParam("questionId") Long questionId);
 	
 	@DELETE
 	@Path("/delete/{questionId}")
-	void deleteQuestion(@PathParam("questionId") Long questionId);
+	Response deleteQuestion(@PathParam("questionId") Long questionId);
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/update")
-	void updateQuestion(QuestionDTO questionDTO);
+	Response updateQuestion(QuestionDTO questionDTO);
 
 	@POST
 	@Path("/find/{questionId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	QuestionDTO findQuestion(@PathParam("questionId") Long questionId);
+	Response findQuestion(@PathParam("questionId") Long questionId);
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/findall")
-	QuestionDTOListWrapper findQuestions();
+	Response findQuestions();
 }

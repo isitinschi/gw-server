@@ -1,12 +1,18 @@
-package com.guesswhat.server.services.rs.dto;
+package com.guesswhat.server.services.rs.backup.dto;
 
-public class RecordDTO {
+import java.io.Serializable;
+
+public class RecordBackupDTO implements Serializable {
 
 	private String userId;
 	private int points;
 	
-	public RecordDTO() {
-		
+	public RecordBackupDTO() {}
+	
+	public RecordBackupDTO(String userId, int points) {
+		super();
+		this.userId = userId;
+		this.points = points;
 	}
 
 	public String getUserId() {
