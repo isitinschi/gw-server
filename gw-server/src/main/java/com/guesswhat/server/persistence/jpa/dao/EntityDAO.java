@@ -51,13 +51,13 @@ public abstract class EntityDAO<T> {
 				.getPersistenceManager();
         Query q = pm.newQuery(getEntityClass());
         try {
-        	pm.currentTransaction().begin();
         	List<T> results = (List<T>) q.execute();
         	for (T entity : results) {
+        		pm.currentTransaction().begin();
 				pm.deletePersistent(entity);				
+				pm.currentTransaction().commit();
 			}
         } finally {
-        	pm.currentTransaction().commit();
             q.closeAll();
             pm.close();
         }   
@@ -69,8 +69,10 @@ public abstract class EntityDAO<T> {
 		
 		try {			
 			for (T entity : entities) {
+				pm.currentTransaction().begin();
 				pm.makePersistent(entity);
 				pm.deletePersistent(entity);				
+				pm.currentTransaction().commit();
 			}
 		} finally {
 			pm.close();

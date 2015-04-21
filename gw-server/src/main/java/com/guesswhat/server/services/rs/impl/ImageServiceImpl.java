@@ -123,15 +123,16 @@ public class ImageServiceImpl implements ImageService {
 		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
 		if (question != null) {
 			Key imageHolderKey = question.getImageQuestion();
-			byte [] bytes = findImage(imageHolderKey, imageType);
-			
-			if (bytes != null) {
-				return Response.ok(bytes).build();				
+			if (imageHolderKey != null) {
+				byte [] bytes = findImage(imageHolderKey, imageType);
+				
+				if (bytes != null) {
+					return Response.ok(bytes).build();				
+				}
 			}
-			
 		}
 
-		return Response.noContent().build();
+		return Response.ok().build();
 	}
 
 	@Override
@@ -140,15 +141,16 @@ public class ImageServiceImpl implements ImageService {
 		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
 		if (question != null) {
 			Key imageHolderKey = question.getImageAnswer();
-			byte [] bytes = findImage(imageHolderKey, imageType);
-			
-			if (bytes != null) {
-				return Response.ok(bytes).build();			
-			}
-			
+			if (imageHolderKey != null) {
+				byte [] bytes = findImage(imageHolderKey, imageType);
+				
+				if (bytes != null) {
+					return Response.ok(bytes).build();			
+				}
+			}			
 		}
 
-		return Response.noContent().build();
+		return Response.ok().build();
 	}
 	
 	private byte[] findImage(Key imageHolderKey, String imageType) {

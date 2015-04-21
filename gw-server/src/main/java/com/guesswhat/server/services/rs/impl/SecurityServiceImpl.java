@@ -19,8 +19,11 @@ public class SecurityServiceImpl implements SecurityService {
 		if (username != null && !username.equals("") && password != null && !password.equals("") &&
 				username.length() > 10 && password.length() > 10) {
 			if (!role.equals(UserRole.ADMIN.toString())) {
-				User user = new User(username, password, role);
-				EntityFactory.getInstance().getUserDAO().save(user);
+				User user = EntityFactory.getInstance().getUserDAO().findUser(username);
+				if (user == null) {
+					User newUser = new User(username, password, role);
+					EntityFactory.getInstance().getUserDAO().save(newUser);
+				}
 			}
 		}
 		

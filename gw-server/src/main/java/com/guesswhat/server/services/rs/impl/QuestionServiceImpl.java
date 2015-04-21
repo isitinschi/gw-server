@@ -60,7 +60,8 @@ public class QuestionServiceImpl implements QuestionService {
 			imageHolderKey = question.getImageAnswer();
 			removeImageHolder(imageHolderKey);
 			
-			EntityFactory.getInstance().getQuestionDAO().remove(questionId);			
+			EntityFactory.getInstance().getQuestionDAO().remove(questionId);
+			DatabaseServiceImpl.incrementVersion();
 		}
 		
 		return Response.ok().build();
@@ -127,7 +128,8 @@ public class QuestionServiceImpl implements QuestionService {
 					question.setImageAnswer(null);
 				}
 				EntityFactory.getInstance().getQuestionDAO().save(question);
-				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());			
+				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());
+				DatabaseServiceImpl.incrementVersion();
 			}
 		}
 		

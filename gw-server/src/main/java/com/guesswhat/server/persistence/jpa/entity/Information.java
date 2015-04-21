@@ -9,24 +9,24 @@ import javax.jdo.annotations.PrimaryKey;
 import com.google.appengine.api.datastore.Key;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Record {
+public class Information {
 
 	@PrimaryKey
 	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
 	@Persistent
-	private String userId;
-	@Persistent
-	private int points;
+	private int databaseVersion;
 	
-	public Record() {
+	public Information() {
 		
 	}
 
-	public Record(String userId, int points) {
-		super();
-		this.userId = userId;
-		this.points = points;
+	public int getDatabaseVersion() {
+		return databaseVersion;
+	}
+
+	public void setDatabaseVersion(int databaseVersion) {
+		this.databaseVersion = databaseVersion;
 	}
 
 	public Key getKey() {
@@ -35,22 +35,6 @@ public class Record {
 
 	public void setKey(Key key) {
 		this.key = key;
-	}
-
-	public String getUserId() {
-		return userId;
-	}
-
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
-
-	public int getPoints() {
-		return points;
-	}
-
-	public void setPoints(int points) {
-		this.points = points;
 	}
 	
 }

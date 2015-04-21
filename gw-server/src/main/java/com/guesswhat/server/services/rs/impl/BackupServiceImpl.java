@@ -46,7 +46,9 @@ public class BackupServiceImpl implements BackupService {
 				populateImages(questionBackupDTO.getImageBackupDTOQuestionMap(), imageHolderQuestionKey);
 				
 				Key imageHolderAnswerKey = question.getImageAnswer();
-				populateImages(questionBackupDTO.getImageBackupDTOAnswerMap(), imageHolderAnswerKey);
+				if (imageHolderAnswerKey != null) {
+					populateImages(questionBackupDTO.getImageBackupDTOAnswerMap(), imageHolderAnswerKey);
+				}
 				
 				questionBackupDTOList.add(questionBackupDTO);
 			}
@@ -131,6 +133,7 @@ public class BackupServiceImpl implements BackupService {
 			if (obj instanceof BackupDTO) {
 				BackupDTO backupDTO = (BackupDTO) obj;
 				uploadBackup(backupDTO);
+				DatabaseServiceImpl.incrementVersion();
 				
 				return Response.ok().build();
 			} 
@@ -142,15 +145,15 @@ public class BackupServiceImpl implements BackupService {
 	}
 
 	private void uploadBackup(BackupDTO backupDTO) {
+		EntityFactory.getInstance().getQuestionDAO().removeAll();
 		User admin = EntityFactory.getInstance().getUserDAO().findAdmin();
 		List<User> users = EntityFactory.getInstance().getUserDAO().findAll();
 		users.remove(admin);
 		EntityFactory.getInstance().getUserDAO().removeAll(users);
 		
-		EntityFactory.getInstance().getQuestionDAO().removeAll();
 		EntityFactory.getInstance().getImageHolderDAO().removeAll();
-		EntityFactory.getInstance().getImageDAO().removeAll();
 		EntityFactory.getInstance().getRecordDAO().removeAll();
+		EntityFactory.getInstance().getImageDAO().removeAll();
 		
 		for (QuestionBackupDTO questionBackupDTO : backupDTO.getQuestionBackupDTOList()) {
 			Question question = new Question(questionBackupDTO);
@@ -169,11 +172,13 @@ public class BackupServiceImpl implements BackupService {
 				ImageServiceImpl.buildImageHolder(imageAnswerHolder, imageType.toString(), inputStream);
 			}
 			
-			if (imageQuestionHolder.isFull() && imageAnswerHolder.isFull()) {
+			if (imageQuestionHolder.isFull()) {
 				EntityFactory.getInstance().getImageHolderDAO().save(imageQuestionHolder);
-				EntityFactory.getInstance().getImageHolderDAO().save(imageAnswerHolder);
 				question.setImageQuestion(imageQuestionHolder.getKey());
-				question.setImageAnswer(imageAnswerHolder.getKey());
+				if (imageAnswerHolder.isFull()) {
+					EntityFactory.getInstance().getImageHolderDAO().save(imageAnswerHolder);
+					question.setImageAnswer(imageAnswerHolder.getKey());
+				}
 				EntityFactory.getInstance().getQuestionDAO().save(question);
 			}
 		}
