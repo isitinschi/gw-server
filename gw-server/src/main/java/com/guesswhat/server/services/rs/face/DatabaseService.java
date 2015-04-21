@@ -1,5 +1,6 @@
 package com.guesswhat.server.services.rs.face;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -13,4 +14,10 @@ public interface DatabaseService {
 	@Produces(MediaType.APPLICATION_JSON)
 	Response getVersion();
 	
+	@DELETE
+	@Path("/drop")
+	@Produces(MediaType.APPLICATION_JSON)
+	Response dropAllData();
+	
+	public void incrementVersion();
 }

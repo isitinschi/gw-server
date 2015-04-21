@@ -11,6 +11,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
+
 public interface ImageService {
 
 	@POST
@@ -32,4 +34,6 @@ public interface ImageService {
 	@Path("/find/answer/{questionId}/{imageType}")
 	@Produces("application/octet-stream")
 	Response findAnswerImage(@PathParam("questionId") Long questionId, @PathParam("imageType") String imageType);
+	
+	public boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source);
 }

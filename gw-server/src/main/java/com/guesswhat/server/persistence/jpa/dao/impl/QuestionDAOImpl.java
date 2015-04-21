@@ -25,7 +25,7 @@ public class QuestionDAOImpl extends EntityDAO<Question> {
 			question.setAnswer3(answer3);
 			question.setAnswer4(answer4);
 			question.setCorrectAnswer(correctAnswer);
-			pm.makePersistent(question);
+			// pm.makePersistent(question);
 			pm.currentTransaction().commit();
 		} catch (Exception ex) {
 			pm.currentTransaction().rollback();

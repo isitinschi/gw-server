@@ -27,7 +27,7 @@ public class ImageHolderDAOImpl extends EntityDAO<ImageHolder> {
 			imageHolder.setHdpiImage(hdpiImage);
 			imageHolder.setMdpiImage(mdpiImage);
 			imageHolder.setLdpiImage(ldpiImage);
-			pm.makePersistent(imageHolder);
+			// pm.makePersistent(imageHolder);
 			pm.currentTransaction().commit();
 		} catch (Exception ex) {
 			pm.currentTransaction().rollback();

@@ -31,7 +31,7 @@ public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
 			questionIncubator.setCorrectAnswer(correctAnswer);
 			questionIncubator.setImageQuestion(imageQuestion);
 			questionIncubator.setImageAnswer(imageAnswer);
-			pm.makePersistent(questionIncubator);
+			// pm.makePersistent(questionIncubator);
 			pm.currentTransaction().commit();
 		} catch (Exception ex) {
 			pm.currentTransaction().rollback();

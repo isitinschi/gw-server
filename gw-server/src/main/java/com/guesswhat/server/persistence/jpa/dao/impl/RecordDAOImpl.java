@@ -25,7 +25,7 @@ public class RecordDAOImpl extends RecordDAO {
 			record = pm.getObjectById(Record.class, record.getKey());
 			record.setUserId(userId);
 			record.setPoints(points);
-			pm.makePersistent(record);			
+			// pm.makePersistent(record);			
 		} finally {
 			pm.currentTransaction().commit();
 			pm.close();

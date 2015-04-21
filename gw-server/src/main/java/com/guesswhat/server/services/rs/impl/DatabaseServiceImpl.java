@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Information;
+import com.guesswhat.server.persistence.jpa.entity.User;
 import com.guesswhat.server.services.rs.face.DatabaseService;
 
 @Path("/database")
@@ -29,10 +30,22 @@ public class DatabaseServiceImpl implements DatabaseService {
 		
 		return Response.ok(databaseVersion).build();
 	}
-
-	public static void incrementVersion() {
-		EntityFactory.getInstance().getInformationDAO().increment();
-	}
 	
+	@Override
+	@RolesAllowed("WRITER")
+	public Response dropAllData() {
+		EntityFactory.getInstance().getQuestionDAO().removeAll();
+		EntityFactory.getInstance().getUserDAO().removeAll();		
+		EntityFactory.getInstance().getImageHolderDAO().removeAll();
+		EntityFactory.getInstance().getRecordDAO().removeAll();
+		EntityFactory.getInstance().getImageDAO().removeAll();
+		
+		return Response.ok().build();
+	}
+
+	@Override
+	public void incrementVersion() {
+		EntityFactory.getInstance().getInformationDAO().increment();
+	}	
 }
 

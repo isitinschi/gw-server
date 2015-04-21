@@ -7,6 +7,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
@@ -14,11 +16,15 @@ import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
+import com.guesswhat.server.services.rs.face.DatabaseService;
 import com.guesswhat.server.services.rs.face.QuestionService;
 
 @Path("/questions")
 public class QuestionServiceImpl implements QuestionService {
 
+	@Autowired
+	private DatabaseService databaseService;
+	
 	@Override
 	@RolesAllowed("READER")
 	public Response findQuestions() {
@@ -61,7 +67,7 @@ public class QuestionServiceImpl implements QuestionService {
 			removeImageHolder(imageHolderKey);
 			
 			EntityFactory.getInstance().getQuestionDAO().remove(questionId);
-			DatabaseServiceImpl.incrementVersion();
+			databaseService.incrementVersion();
 		}
 		
 		return Response.ok().build();
@@ -129,7 +135,7 @@ public class QuestionServiceImpl implements QuestionService {
 				}
 				EntityFactory.getInstance().getQuestionDAO().save(question);
 				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());
-				DatabaseServiceImpl.incrementVersion();
+				databaseService.incrementVersion();
 			}
 		}
 		

@@ -13,10 +13,8 @@ import com.guesswhat.server.persistence.jpa.dao.impl.RecordDAOImpl;
 import com.guesswhat.server.persistence.jpa.dao.impl.UserDAOImpl;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
-import com.guesswhat.server.persistence.jpa.entity.Information;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
-import com.guesswhat.server.persistence.jpa.entity.Record;
 
 
 public class EntityFactory {

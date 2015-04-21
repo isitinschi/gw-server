@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
@@ -28,11 +30,18 @@ import com.guesswhat.server.services.rs.backup.dto.RecordBackupDTO;
 import com.guesswhat.server.services.rs.backup.dto.UserBackupDTO;
 import com.guesswhat.server.services.rs.dto.ImageType;
 import com.guesswhat.server.services.rs.face.BackupService;
+import com.guesswhat.server.services.rs.face.DatabaseService;
+import com.guesswhat.server.services.rs.face.ImageService;
 import com.guesswhat.server.services.security.cfg.UserRole;
 
 @Path("/backup")
 public class BackupServiceImpl implements BackupService {
 
+	@Autowired
+	private ImageService imageService;
+	@Autowired
+	private DatabaseService databaseService;
+	
 	@Override
 	@RolesAllowed("WRITER")
 	public Response downloadBackup() {		
@@ -133,7 +142,7 @@ public class BackupServiceImpl implements BackupService {
 			if (obj instanceof BackupDTO) {
 				BackupDTO backupDTO = (BackupDTO) obj;
 				uploadBackup(backupDTO);
-				DatabaseServiceImpl.incrementVersion();
+				databaseService.incrementVersion();
 				
 				return Response.ok().build();
 			} 
@@ -162,14 +171,14 @@ public class BackupServiceImpl implements BackupService {
 			for (ImageType imageType : questionBackupDTO.getImageBackupDTOQuestionMap().keySet()) {
 				ImageBackupDTO imageBackupDTO = questionBackupDTO.getImageBackupDTOQuestionMap().get(imageType);
 				InputStream inputStream = new ByteArrayInputStream(imageBackupDTO.getBytes()); 
-				ImageServiceImpl.buildImageHolder(imageQuestionHolder, imageType.toString(), inputStream);
+				imageService.buildImageHolder(imageQuestionHolder, imageType.toString(), inputStream);
 			}
 			
 			ImageHolder imageAnswerHolder = new ImageHolder();
 			for (ImageType imageType : questionBackupDTO.getImageBackupDTOAnswerMap().keySet()) {
 				ImageBackupDTO imageBackupDTO = questionBackupDTO.getImageBackupDTOQuestionMap().get(imageType);
 				InputStream inputStream = new ByteArrayInputStream(imageBackupDTO.getBytes()); 
-				ImageServiceImpl.buildImageHolder(imageAnswerHolder, imageType.toString(), inputStream);
+				imageService.buildImageHolder(imageAnswerHolder, imageType.toString(), inputStream);
 			}
 			
 			if (imageQuestionHolder.isFull()) {

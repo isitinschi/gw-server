@@ -19,12 +19,18 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.internal.util.Base64;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 
 import com.guesswhat.server.services.rs.dto.ImageType;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 import com.guesswhat.server.services.rs.dto.RecordDTO;
 import com.guesswhat.server.services.security.cfg.UserRole;
 
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("classpath:cfg-ApplicationContext.xml")
 public class AbstractServiceTest {
 	
 	private static final String SERVER_URL = "http://localhost:8888";
@@ -35,9 +41,14 @@ public class AbstractServiceTest {
 	private static final String WRITER_PASSWORD = "writer_password_5869";
 	private static final String READER_LOGIN = "reader_login_2398";
 	private static final String READER_PASSWORD = "reader_password_9283";
-
+	
 	@Before
-	public void init() throws InterruptedException {
+	public void setUp() throws InterruptedException {
+		dropAllData();
+		handshake();
+	}
+	
+	private void handshake() throws InterruptedException {
 		String securityUrl = getSecurityUrl();
 		Client client = ClientBuilder.newClient();		
 
@@ -167,6 +178,20 @@ public class AbstractServiceTest {
 		
 		response = invocationBuilder.delete();
 		Assert.assertEquals(200, response.getStatus());
+	}
+	
+	protected void dropAllData() {
+		String databaseUrl = getDatabaseUrl();
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(databaseUrl);
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.path("drop").request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
+		
+		response = invocationBuilder.delete();
+		Assert.assertTrue(response.getStatus() == 200 || response.getStatus() == 401);
 	}
 	
 	protected List<QuestionDTO> findQuestions() {

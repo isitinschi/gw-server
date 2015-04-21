@@ -69,7 +69,8 @@ public class ImageServiceImpl implements ImageService {
 		return Response.ok().build();
 	}
 
-	public static boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
+	@Override
+	public boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
 	    Blob blob = null;
 	    try {
 	    	byte[] bytes = IOUtils.toByteArray(source);
