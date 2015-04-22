@@ -1,13 +1,7 @@
 package com.guesswhat.server.persistence.jpa.dao.impl;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
-import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
+import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
 
-public class ImageHolderDAOImpl extends EntityDAO<ImageHolder> {
-
-	@Override
-	public Class<ImageHolder> getEntityClass() {
-		return ImageHolder.class;
-	}
+public class ImageHolderDAOImpl extends ImageHolderDAO {
 	
 }

@@ -20,8 +20,9 @@ import javax.ws.rs.ext.Provider;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.util.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
+import com.guesswhat.server.persistence.jpa.dao.UserDAO;
 import com.guesswhat.server.persistence.jpa.entity.User;
  
 /**
@@ -38,6 +39,8 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
     
     @Context
     private ResourceInfo resourceInfo;
+    
+    @Autowired private UserDAO userDAO;
     
     @Override
     public void filter(ContainerRequestContext requestContext) {
@@ -105,7 +108,7 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
     private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet) {
         boolean isAllowed = false;         
 
-        User user = EntityFactory.getInstance().getUserDAO().findUser(username);
+        User user = userDAO.findUser(username);
         if (user == null || !user.getPassword().equals(password)) {
         	return false;
         }

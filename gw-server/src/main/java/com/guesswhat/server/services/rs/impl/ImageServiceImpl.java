@@ -10,10 +10,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.apphosting.api.ApiProxy.RequestTooLargeException;
-import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
+import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
+import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
+import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
+import com.guesswhat.server.persistence.jpa.dao.QuestionIncubatorDAO;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
@@ -24,24 +28,29 @@ import com.guesswhat.server.services.rs.face.ImageService;
 @Path("/images")
 public class ImageServiceImpl implements ImageService {
 
+	@Autowired private QuestionDAO questionDAO;
+	@Autowired private QuestionIncubatorDAO questionIncubatorDAO;
+	@Autowired private ImageHolderDAO imageHolderDAO;
+	@Autowired private ImageDAO imageDAO;
+	
 	@Override
 	@RolesAllowed("WRITER")
 	public Response createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
-		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
+		QuestionIncubator questionIncubator = questionIncubatorDAO.find(questionId);
 		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageQuestionId() == null) {
 			imageHolder = new ImageHolder();
-			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
+			imageHolderDAO.save(imageHolder);
 			questionIncubator.setImageQuestionId(imageHolder.getId());
-			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+			questionIncubatorDAO.update(questionIncubator);
 		} else {
-			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestionId());
+			imageHolder = imageHolderDAO.find(questionIncubator.getImageQuestionId());
 		}
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
-			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
+			imageHolderDAO.update(imageHolder);
 		}
 		
-		EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		questionIncubatorDAO.update(questionIncubator);
 		
 		return Response.ok().build();
 	}
@@ -49,21 +58,21 @@ public class ImageServiceImpl implements ImageService {
 	@Override
 	@RolesAllowed("WRITER")
 	public Response createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
-		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
+		QuestionIncubator questionIncubator = questionIncubatorDAO.find(questionId);
 		ImageHolder imageHolder = null;
 		if (questionIncubator.getImageAnswerId() == null) {
 			imageHolder = new ImageHolder();
-			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
+			imageHolderDAO.save(imageHolder);
 			questionIncubator.setImageAnswerId(imageHolder.getId());
-			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+			questionIncubatorDAO.update(questionIncubator);
 		} else {
-			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswerId());
+			imageHolder = imageHolderDAO.find(questionIncubator.getImageAnswerId());
 		}
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
-			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
+			imageHolderDAO.update(imageHolder);
 		}
 		
-		EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
+		questionIncubatorDAO.update(questionIncubator);
 		
 		return Response.ok().build();
 	}
@@ -78,7 +87,7 @@ public class ImageServiceImpl implements ImageService {
 		    Image image = new Image(blob);
 		    
 		    try {
-		    	EntityFactory.getInstance().getImageDAO().save(image);
+		    	imageDAO.save(image);
 		    } catch (RequestTooLargeException e) {
 		    	// file is too big. Workaround:
 				int middle = bytes.length / 2;
@@ -88,10 +97,10 @@ public class ImageServiceImpl implements ImageService {
 				Blob blob2 = new Blob(bytes2);
 				image = new Image(blob1);
 				Image image2 = new Image(blob2);
-				EntityFactory.getInstance().getImageDAO().save(image2);
+				imageDAO.save(image2);
 				image.setSecondPart(image2.getId());
 				// try again :)
-				EntityFactory.getInstance().getImageDAO().save(image);
+				imageDAO.save(image);
 		    }
 		    Long imageId = image.getId();
 		    
@@ -120,7 +129,7 @@ public class ImageServiceImpl implements ImageService {
 	@Override
 	@RolesAllowed("READER")
 	public Response findQuestionImage(Long questionId, String imageType) {
-		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		Question question = questionDAO.find(questionId);
 		if (question != null) {
 			Long imageHolderId = question.getImageQuestionId();
 			if (imageHolderId != null) {
@@ -138,7 +147,7 @@ public class ImageServiceImpl implements ImageService {
 	@Override
 	@RolesAllowed("READER")
 	public Response findAnswerImage(Long questionId, String imageType) {
-		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		Question question = questionDAO.find(questionId);
 		if (question != null) {
 			Long imageHolderId = question.getImageAnswerId();
 			if (imageHolderId != null) {
@@ -154,7 +163,7 @@ public class ImageServiceImpl implements ImageService {
 	}
 	
 	private byte[] findImage(Long imageHolderId, String imageType) {
-		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
+		ImageHolder imageHolder = imageHolderDAO.find(imageHolderId);
 		Long imageId = null;
 		
 		switch(ImageType.valueOf(imageType)) {
@@ -174,10 +183,10 @@ public class ImageServiceImpl implements ImageService {
 			return null;
 		}
 		
-		Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
+		Image image = imageDAO.find(imageId);
 		Image imageSecondPart = null;
 		if (image.getSecondPart() != null) {
-			imageSecondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
+			imageSecondPart = imageDAO.find(image.getSecondPart());
 		}
 		
 		byte [] bytes = null;
@@ -197,6 +206,22 @@ public class ImageServiceImpl implements ImageService {
 		   System.arraycopy(a, 0, c, 0, aLen);
 		   System.arraycopy(b, 0, c, aLen, bLen);
 		   return c;
+	}
+
+	public void setQuestionDAO(QuestionDAO questionDAO) {
+		this.questionDAO = questionDAO;
+	}
+
+	public void setQuestionIncubatorDAO(QuestionIncubatorDAO questionIncubatorDAO) {
+		this.questionIncubatorDAO = questionIncubatorDAO;
+	}
+
+	public void setImageHolderDAO(ImageHolderDAO imageHolderDAO) {
+		this.imageHolderDAO = imageHolderDAO;
+	}
+
+	public void setImageDAO(ImageDAO imageDAO) {
+		this.imageDAO = imageDAO;
 	}
 
 }

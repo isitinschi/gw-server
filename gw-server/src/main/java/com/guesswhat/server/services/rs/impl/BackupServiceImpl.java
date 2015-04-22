@@ -16,7 +16,11 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
+import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
+import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
+import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
+import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
+import com.guesswhat.server.persistence.jpa.dao.UserDAO;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
@@ -36,16 +40,20 @@ import com.guesswhat.server.services.security.cfg.UserRole;
 @Path("/backup")
 public class BackupServiceImpl implements BackupService {
 
-	@Autowired
-	private ImageService imageService;
-	@Autowired
-	private DatabaseService databaseService;
+	@Autowired private ImageService imageService;
+	@Autowired private DatabaseService databaseService;
+	
+	@Autowired private QuestionDAO questionDAO;
+	@Autowired private ImageHolderDAO imageHolderDAO;
+	@Autowired private ImageDAO imageDAO;
+	@Autowired private UserDAO userDAO;
+	@Autowired private RecordDAO recordDAO;
 	
 	@Override
 	@RolesAllowed("WRITER")
 	public Response downloadBackup() {		
 		try {			
-			List<Question> questions = EntityFactory.getInstance().getQuestionDAO().findAll();
+			List<Question> questions = questionDAO.findAll();
 			List<QuestionBackupDTO> questionBackupDTOList = new ArrayList<QuestionBackupDTO>();
 			for (Question question : questions) {
 				QuestionBackupDTO questionBackupDTO = new QuestionBackupDTO(question);
@@ -61,7 +69,7 @@ public class BackupServiceImpl implements BackupService {
 				questionBackupDTOList.add(questionBackupDTO);
 			}
 			
-			List<User> users = EntityFactory.getInstance().getUserDAO().findAll();
+			List<User> users = userDAO.findAll();
 			List<UserBackupDTO> userBackupDTOList = new ArrayList<UserBackupDTO>();
 			for (User user : users) {
 				if (!user.getRole().equals(UserRole.ADMIN.toString())) {
@@ -70,7 +78,7 @@ public class BackupServiceImpl implements BackupService {
 				}
 			}
 			
-			List<Record> records = EntityFactory.getInstance().getRecordDAO().findAll();
+			List<Record> records = recordDAO.findAll();
 			List<RecordBackupDTO> recordBackupDTOList = new ArrayList<RecordBackupDTO>();
 			for (Record record : records) {
 				RecordBackupDTO userBackupDTO = new RecordBackupDTO(record.getUserId(), record.getPoints());
@@ -98,7 +106,7 @@ public class BackupServiceImpl implements BackupService {
 	}
 
 	private void populateImages(Map<ImageType, ImageBackupDTO> imageBackupDTOList, Long imageHolderId) {
-		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
+		ImageHolder imageHolder = imageHolderDAO.find(imageHolderId);
 		imageBackupDTOList.put(ImageType.LDPI, getImage(imageHolder.getLdpiImageId()));
 		imageBackupDTOList.put(ImageType.MDPI, getImage(imageHolder.getMdpiImageId()));
 		imageBackupDTOList.put(ImageType.HDPI, getImage(imageHolder.getHdpiImageId()));
@@ -107,10 +115,10 @@ public class BackupServiceImpl implements BackupService {
 	}
 
 	private ImageBackupDTO getImage(Long imageId) {
-		Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
+		Image image = imageDAO.find(imageId);
 		Image imageSecondPart = null;
 		if (image.getSecondPart() != null) {
-			imageSecondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
+			imageSecondPart = imageDAO.find(image.getSecondPart());
 		}
 		
 		byte [] bytes = null;
@@ -153,15 +161,15 @@ public class BackupServiceImpl implements BackupService {
 	}
 
 	private void uploadBackup(BackupDTO backupDTO) {
-		EntityFactory.getInstance().getQuestionDAO().removeAll();
-		User admin = EntityFactory.getInstance().getUserDAO().findAdmin();
-		List<User> users = EntityFactory.getInstance().getUserDAO().findAll();
+		User admin = userDAO.findAdmin();
+		List<User> users = userDAO.findAll();
 		users.remove(admin);
-		EntityFactory.getInstance().getUserDAO().removeAll(users);
+		userDAO.removeAll(users);
 		
-		EntityFactory.getInstance().getImageHolderDAO().removeAll();
-		EntityFactory.getInstance().getRecordDAO().removeAll();
-		EntityFactory.getInstance().getImageDAO().removeAll();
+		recordDAO.removeAll();
+		questionDAO.removeAll();
+		imageHolderDAO.removeAll();
+		imageDAO.removeAll();
 		
 		for (QuestionBackupDTO questionBackupDTO : backupDTO.getQuestionBackupDTOList()) {
 			Question question = new Question(questionBackupDTO);
@@ -181,28 +189,56 @@ public class BackupServiceImpl implements BackupService {
 			}
 			
 			if (imageQuestionHolder.isFull()) {
-				EntityFactory.getInstance().getImageHolderDAO().save(imageQuestionHolder);
+				imageHolderDAO.save(imageQuestionHolder);
 				question.setImageQuestionId(imageQuestionHolder.getId());
 				if (imageAnswerHolder.isFull()) {
-					EntityFactory.getInstance().getImageHolderDAO().save(imageAnswerHolder);
+					imageHolderDAO.save(imageAnswerHolder);
 					question.setImageAnswerId(imageAnswerHolder.getId());
 				}
-				EntityFactory.getInstance().getQuestionDAO().save(question);
+				questionDAO.save(question);
 			}
 		}
 		
 		for (RecordBackupDTO recordBackupDTO : backupDTO.getRecordBackupDTOList()) {
 			Record record = new Record(recordBackupDTO.getUserId(), recordBackupDTO.getPoints());
-			EntityFactory.getInstance().getRecordDAO().save(record);
+			recordDAO.save(record);
 		}
 		
 		for (UserBackupDTO userBackupDTO : backupDTO.getUserBackupDTOList()) {
 			User user = new User(userBackupDTO.getUsername(), userBackupDTO.getPassword(), userBackupDTO.getRole());
 			if (!user.getRole().equals(UserRole.ADMIN.toString())) {
-				EntityFactory.getInstance().getUserDAO().save(user);
+				userDAO.save(user);
 			}
 		}
 	}
 
+	public void setImageService(ImageService imageService) {
+		this.imageService = imageService;
+	}
+
+	public void setDatabaseService(DatabaseService databaseService) {
+		this.databaseService = databaseService;
+	}
+
+	public void setQuestionDAO(QuestionDAO questionDAO) {
+		this.questionDAO = questionDAO;
+	}
+
+	public void setImageHolderDAO(ImageHolderDAO imageHolderDAO) {
+		this.imageHolderDAO = imageHolderDAO;
+	}
+
+	public void setImageDAO(ImageDAO imageDAO) {
+		this.imageDAO = imageDAO;
+	}
+
+	public void setUserDAO(UserDAO userDAO) {
+		this.userDAO = userDAO;
+	}
+
+	public void setRecordDAO(RecordDAO recordDAO) {
+		this.recordDAO = recordDAO;
+	}
+	
 }
 

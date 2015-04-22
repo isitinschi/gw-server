@@ -1,13 +1,7 @@
 package com.guesswhat.server.persistence.jpa.dao.impl;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
-import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
+import com.guesswhat.server.persistence.jpa.dao.QuestionIncubatorDAO;
 
-public class QuestionIncubatorDAOImpl extends EntityDAO<QuestionIncubator> {
-	
-	@Override
-	public Class<QuestionIncubator> getEntityClass() {
-		return QuestionIncubator.class;
-	}	
+public class QuestionIncubatorDAOImpl extends QuestionIncubatorDAO {
 	
 }

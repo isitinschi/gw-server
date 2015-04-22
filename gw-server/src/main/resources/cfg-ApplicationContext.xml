@@ -7,10 +7,56 @@
     http://www.springframework.org/schema/context
     http://www.springframework.org/schema/context/spring-context-3.0.xsd">
    
-    <bean id="backupService" class="com.guesswhat.server.services.rs.impl.BackupServiceImpl" />
-    <bean id="databaseService" class="com.guesswhat.server.services.rs.impl.DatabaseServiceImpl" />
-    <bean id="questionService" class="com.guesswhat.server.services.rs.impl.QuestionServiceImpl" />
-    <bean id="recordService" class="com.guesswhat.server.services.rs.impl.RecordServiceImpl" />
-    <bean id="imageService" class="com.guesswhat.server.services.rs.impl.ImageServiceImpl" />
+    <!-- DAO -->
+    <bean id="questionDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.QuestionDAOImpl" />
+    <bean id="questionIncubatorDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.QuestionIncubatorDAOImpl" />
+    <bean id="imageHolderDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.ImageHolderDAOImpl" />
+    <bean id="imageDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.ImageDAOImpl" />
+    <bean id="recordDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.RecordDAOImpl" />
+    <bean id="userDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.UserDAOImpl" />
+    <bean id="informationDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.InformationDAOImpl" />
+    
+	<!-- SERVICES -->
+    <bean id="backupService" class="com.guesswhat.server.services.rs.impl.BackupServiceImpl" >
+        <property name="imageService" ref="imageService" />
+        <property name="databaseService" ref="databaseService" />
+        <property name="questionDAO" ref="questionDAO" />
+        <property name="imageHolderDAO" ref="imageHolderDAO" />
+        <property name="imageDAO" ref="imageDAO" />
+        <property name="userDAO" ref="userDAO" />
+        <property name="recordDAO" ref="recordDAO" />
+    </bean>
+    
+    <bean id="databaseService" class="com.guesswhat.server.services.rs.impl.DatabaseServiceImpl" >
+        <property name="questionDAO" ref="questionDAO" />
+        <property name="imageHolderDAO" ref="imageHolderDAO" />
+        <property name="imageDAO" ref="imageDAO" />
+        <property name="userDAO" ref="userDAO" />
+        <property name="recordDAO" ref="recordDAO" />
+        <property name="informationDAO" ref="informationDAO" />
+    </bean>
+    
+    <bean id="questionService" class="com.guesswhat.server.services.rs.impl.QuestionServiceImpl" >
+        <property name="databaseService" ref="databaseService" />
+        <property name="questionDAO" ref="questionDAO" />
+        <property name="imageHolderDAO" ref="imageHolderDAO" />
+        <property name="imageDAO" ref="imageDAO" />
+        <property name="questionIncubatorDAO" ref="questionIncubatorDAO" />
+    </bean>
+    
+    <bean id="recordService" class="com.guesswhat.server.services.rs.impl.RecordServiceImpl" >
+        <property name="recordDAO" ref="recordDAO" />
+    </bean>
+    
+    <bean id="imageService" class="com.guesswhat.server.services.rs.impl.ImageServiceImpl" >
+        <property name="questionDAO" ref="questionDAO" />
+        <property name="imageHolderDAO" ref="imageHolderDAO" />
+        <property name="imageDAO" ref="imageDAO" />
+        <property name="questionIncubatorDAO" ref="questionIncubatorDAO" />
+    </bean>
+    
+    <bean id="securityService" class="com.guesswhat.server.services.rs.impl.SecurityServiceImpl" >
+        <property name="userDAO" ref="userDAO" />
+    </bean>  	
 
 </beans>

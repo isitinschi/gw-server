@@ -7,7 +7,9 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.guesswhat.server.persistence.jpa.dao.RecordDAO;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 import com.guesswhat.server.services.rs.dto.RecordDTO;
 import com.guesswhat.server.services.rs.face.RecordService;
@@ -15,18 +17,20 @@ import com.guesswhat.server.services.rs.face.RecordService;
 @Path("/records")
 public class RecordServiceImpl implements RecordService {
 
+	@Autowired private RecordDAO recordDAO;
+	
 	@Override
 	@RolesAllowed("READER")
 	public Response saveUserRecord(RecordDTO recordDTO) {
-		Record record = EntityFactory.getInstance().getRecordDAO().findByUserId(recordDTO.getUserId());
+		Record record = recordDAO.findByUserId(recordDTO.getUserId());
 		if (record != null) {
 			if (record.getPoints() < recordDTO.getPoints()) {
 				record.setPoints(recordDTO.getPoints());
-				EntityFactory.getInstance().getRecordDAO().update(record);
+				recordDAO.update(record);
 			}
 		} else {
 			Record newRecord = new Record(recordDTO.getUserId(), recordDTO.getPoints());
-			EntityFactory.getInstance().getRecordDAO().save(newRecord);			
+			recordDAO.save(newRecord);			
 		}		
 		
 		return Response.ok().build();
@@ -35,7 +39,7 @@ public class RecordServiceImpl implements RecordService {
 	@Override
 	@RolesAllowed("READER")
 	public Response findTopRecords() {
-		List<Record> records = EntityFactory.getInstance().getRecordDAO().findTop();
+		List<Record> records = recordDAO.findTop();
 		List<RecordDTO> recordDTOList = new ArrayList<RecordDTO>();
 		for (Record record : records) {
 			RecordDTO recordDTO = new RecordDTO();
@@ -49,14 +53,18 @@ public class RecordServiceImpl implements RecordService {
 	@Override
 	@RolesAllowed("READER")
 	public Response findUserPlace(String userId) {
-		Record record = EntityFactory.getInstance().getRecordDAO().findByUserId(userId);
+		Record record = recordDAO.findByUserId(userId);
 		
 		int userPlace = 0;
 		if (record != null) {
-			userPlace = EntityFactory.getInstance().getRecordDAO().findRecordPlace(record);
+			userPlace = recordDAO.findRecordPlace(record);
 		}
 		
 		return Response.ok(userPlace).build();
+	}
+
+	public void setRecordDAO(RecordDAO recordDAO) {
+		this.recordDAO = recordDAO;
 	}
 
 }

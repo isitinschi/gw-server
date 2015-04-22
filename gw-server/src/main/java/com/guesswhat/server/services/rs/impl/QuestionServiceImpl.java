@@ -9,7 +9,10 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
+import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
+import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
+import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
+import com.guesswhat.server.persistence.jpa.dao.QuestionIncubatorDAO;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
@@ -21,13 +24,17 @@ import com.guesswhat.server.services.rs.face.QuestionService;
 @Path("/questions")
 public class QuestionServiceImpl implements QuestionService {
 
-	@Autowired
-	private DatabaseService databaseService;
+	@Autowired private DatabaseService databaseService;
+	
+	@Autowired private QuestionDAO questionDAO;
+	@Autowired QuestionIncubatorDAO questionIncubatorDAO;
+	@Autowired private ImageHolderDAO imageHolderDAO;
+	@Autowired private ImageDAO imageDAO;
 	
 	@Override
 	@RolesAllowed("READER")
 	public Response findQuestions() {
-		List<Question> questions = EntityFactory.getInstance().getQuestionDAO().findAll();
+		List<Question> questions = questionDAO.findAll();
 		List<QuestionDTO> questionDTOList = new ArrayList<QuestionDTO>();
 		for (Question question : questions) {
 			QuestionDTO questionDTO = new QuestionDTO(question);
@@ -41,7 +48,7 @@ public class QuestionServiceImpl implements QuestionService {
 	@RolesAllowed("WRITER")
 	public Response createQuestion(QuestionDTO questionDTO) {
 		QuestionIncubator questionIncubator = new QuestionIncubator(questionDTO);
-		EntityFactory.getInstance().getQuestionIncubatorDAO().save(questionIncubator);
+		questionIncubatorDAO.save(questionIncubator);
 		
 		return Response.ok(questionIncubator.getId()).build();
 	}
@@ -49,7 +56,7 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	@RolesAllowed("READER")
 	public Response findQuestion(Long questionId) {
-		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		Question question = questionDAO.find(questionId);
 		QuestionDTO questionDTO = new QuestionDTO(question);
 		
 		return Response.ok(questionDTO).build();
@@ -58,14 +65,14 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	@RolesAllowed("WRITER")
 	public Response deleteQuestion(Long questionId) {
-		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
+		Question question = questionDAO.find(questionId);
 		if (question != null) {
 			Long imageHolderId = question.getImageQuestionId();
 			removeImageHolder(imageHolderId);
 			imageHolderId = question.getImageAnswerId();
 			removeImageHolder(imageHolderId);
 			
-			EntityFactory.getInstance().getQuestionDAO().remove(questionId);
+			questionDAO.remove(questionId);
 			databaseService.incrementVersion();
 		}
 		
@@ -74,7 +81,7 @@ public class QuestionServiceImpl implements QuestionService {
 
 	private void removeImageHolder(Long imageHolderId) {
 		if (imageHolderId != null) {
-			ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
+			ImageHolder imageHolder = imageHolderDAO.find(imageHolderId);
 			if (imageHolder != null) {
 				removeImage(imageHolder.getLdpiImageId());
 				removeImage(imageHolder.getMdpiImageId());
@@ -82,23 +89,23 @@ public class QuestionServiceImpl implements QuestionService {
 				removeImage(imageHolder.getXhdpiImageId());
 				removeImage(imageHolder.getXxhdpiImageId());
 				
-				EntityFactory.getInstance().getImageHolderDAO().remove(imageHolderId);
+				imageHolderDAO.remove(imageHolderId);
 			}
 		}
 	}
 
 	private void removeImage(Long imageId) {
 		if (imageId != null) {
-			Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
+			Image image = imageDAO.find(imageId);
 			if (image != null) {
 				Image secondPart = null;
 				if (image.getSecondPart() != null) {
-					secondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
+					secondPart = imageDAO.find(image.getSecondPart());
 				}
 				
-				EntityFactory.getInstance().getImageDAO().remove(imageId);
+				imageDAO.remove(imageId);
 				if (secondPart != null) {
-					EntityFactory.getInstance().getImageDAO().remove(secondPart.getId());
+					imageDAO.remove(secondPart.getId());
 				}
 			}
 		}
@@ -108,7 +115,7 @@ public class QuestionServiceImpl implements QuestionService {
 	@RolesAllowed("WRITER")
 	public Response updateQuestion(QuestionDTO questionDTO) {
 		Question question = new Question(questionDTO);
-		EntityFactory.getInstance().getQuestionDAO().update(question);
+		questionDAO.update(question);
 		
 		return Response.ok().build();
 	}
@@ -116,15 +123,15 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	@RolesAllowed("WRITER")
 	public Response buildQuestion(Long questionId) {
-		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
+		QuestionIncubator questionIncubator = questionIncubatorDAO.find(questionId);
 		
 		ImageHolder imageHolderQuestion = null;
 		if (questionIncubator.getImageQuestionId() != null) {
-			imageHolderQuestion = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestionId());
+			imageHolderQuestion = imageHolderDAO.find(questionIncubator.getImageQuestionId());
 		
 			ImageHolder imageHolderAnswer = null;
 			if (questionIncubator.getImageAnswerId() != null) {
-				imageHolderAnswer = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswerId());
+				imageHolderAnswer = imageHolderDAO.find(questionIncubator.getImageAnswerId());
 			}
 			
 			if (imageHolderQuestion.isFull()) {
@@ -132,13 +139,33 @@ public class QuestionServiceImpl implements QuestionService {
 				if (imageHolderAnswer == null || !imageHolderAnswer.isFull()) {
 					question.setImageAnswerId(null);
 				}
-				EntityFactory.getInstance().getQuestionDAO().save(question);
-				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getId());
+				questionDAO.save(question);
+				questionIncubatorDAO.remove(questionIncubator.getId());
 				databaseService.incrementVersion();
 			}
 		}
 		
 		return Response.ok().build();
+	}
+
+	public void setDatabaseService(DatabaseService databaseService) {
+		this.databaseService = databaseService;
+	}
+
+	public void setQuestionDAO(QuestionDAO questionDAO) {
+		this.questionDAO = questionDAO;
+	}
+
+	public void setQuestionIncubatorDAO(QuestionIncubatorDAO questionIncubatorDAO) {
+		this.questionIncubatorDAO = questionIncubatorDAO;
+	}
+
+	public void setImageHolderDAO(ImageHolderDAO imageHolderDAO) {
+		this.imageHolderDAO = imageHolderDAO;
+	}
+
+	public void setImageDAO(ImageDAO imageDAO) {
+		this.imageDAO = imageDAO;
 	}
 	
 }
