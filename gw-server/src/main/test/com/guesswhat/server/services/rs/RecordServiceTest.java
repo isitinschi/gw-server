@@ -22,6 +22,8 @@ public class RecordServiceTest extends AbstractServiceTest {
 	
 	@Test
 	public void testRecordService() {
+		createRecords();
+		
 		String recordUrl = getRecordUrl();		
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(recordUrl);
@@ -61,7 +63,7 @@ public class RecordServiceTest extends AbstractServiceTest {
 		}	
 	}
 	
-	public void createRecords() {
+	private void createRecords() {
 		for (int i = 0; i < RECORDS_COUNT; ++i) {
 			createRecord("user" + i, i);
 		}

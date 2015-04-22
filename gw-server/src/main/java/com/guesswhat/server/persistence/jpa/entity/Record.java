@@ -1,22 +1,17 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
-import javax.jdo.annotations.IdGeneratorStrategy;
-import javax.jdo.annotations.IdentityType;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 
-import com.google.appengine.api.datastore.Key;
-
-@PersistenceCapable(identityType = IdentityType.APPLICATION)
+@Entity
 public class Record {
 
-	@PrimaryKey
-	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	private Key key;
-	@Persistent
+	@Id
+	private Long id;
+	@Index
 	private String userId;
-	@Persistent
+	@Index
 	private int points;
 	
 	public Record() {
@@ -29,12 +24,12 @@ public class Record {
 		this.points = points;
 	}
 
-	public Key getKey() {
-		return key;
+	public Long getId() {
+		return id;
 	}
 
-	public void setKey(Key key) {
-		this.key = key;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String getUserId() {

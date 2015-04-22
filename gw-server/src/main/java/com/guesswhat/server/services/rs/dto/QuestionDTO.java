@@ -17,7 +17,7 @@ public class QuestionDTO {
 
 	public QuestionDTO(Question question) {
 		super();
-		this.id = String.valueOf(question.getKey().getId());
+		this.id = String.valueOf(question.getId());
 		this.answer1 = question.getAnswer1();
 		this.answer2 = question.getAnswer2();
 		this.answer3 = question.getAnswer3();

@@ -50,7 +50,7 @@ public class SecurityServiceImpl implements SecurityService {
 	public Response deleteUser(String username) {
 		User user = EntityFactory.getInstance().getUserDAO().findUser(username);
 		if (user != null && !user.getRole().equals(UserRole.ADMIN.toString())) {
-			EntityFactory.getInstance().getUserDAO().remove(user.getKey());
+			EntityFactory.getInstance().getUserDAO().remove(user.getId());
 		}
 		
 		return Response.ok().build();

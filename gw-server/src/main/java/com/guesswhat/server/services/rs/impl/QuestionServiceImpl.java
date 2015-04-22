@@ -9,7 +9,6 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
@@ -44,7 +43,7 @@ public class QuestionServiceImpl implements QuestionService {
 		QuestionIncubator questionIncubator = new QuestionIncubator(questionDTO);
 		EntityFactory.getInstance().getQuestionIncubatorDAO().save(questionIncubator);
 		
-		return Response.ok(questionIncubator.getKey().getId()).build();
+		return Response.ok(questionIncubator.getId()).build();
 	}
 
 	@Override
@@ -61,10 +60,10 @@ public class QuestionServiceImpl implements QuestionService {
 	public Response deleteQuestion(Long questionId) {
 		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
 		if (question != null) {
-			Key imageHolderKey = question.getImageQuestion();
-			removeImageHolder(imageHolderKey);
-			imageHolderKey = question.getImageAnswer();
-			removeImageHolder(imageHolderKey);
+			Long imageHolderId = question.getImageQuestionId();
+			removeImageHolder(imageHolderId);
+			imageHolderId = question.getImageAnswerId();
+			removeImageHolder(imageHolderId);
 			
 			EntityFactory.getInstance().getQuestionDAO().remove(questionId);
 			databaseService.incrementVersion();
@@ -73,33 +72,33 @@ public class QuestionServiceImpl implements QuestionService {
 		return Response.ok().build();
 	}
 
-	private void removeImageHolder(Key imageHolderKey) {
-		if (imageHolderKey != null) {
-			ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderKey);
+	private void removeImageHolder(Long imageHolderId) {
+		if (imageHolderId != null) {
+			ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
 			if (imageHolder != null) {
-				removeImage(imageHolder.getLdpiImage());
-				removeImage(imageHolder.getMdpiImage());
-				removeImage(imageHolder.getHdpiImage());
-				removeImage(imageHolder.getXhdpiImage());
-				removeImage(imageHolder.getXxhdpiImage());
+				removeImage(imageHolder.getLdpiImageId());
+				removeImage(imageHolder.getMdpiImageId());
+				removeImage(imageHolder.getHdpiImageId());
+				removeImage(imageHolder.getXhdpiImageId());
+				removeImage(imageHolder.getXxhdpiImageId());
 				
-				EntityFactory.getInstance().getImageHolderDAO().remove(imageHolderKey);
+				EntityFactory.getInstance().getImageHolderDAO().remove(imageHolderId);
 			}
 		}
 	}
 
-	private void removeImage(Key imageKey) {
-		if (imageKey != null) {
-			Image image = EntityFactory.getInstance().getImageDAO().find(imageKey);
+	private void removeImage(Long imageId) {
+		if (imageId != null) {
+			Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
 			if (image != null) {
 				Image secondPart = null;
 				if (image.getSecondPart() != null) {
 					secondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
 				}
 				
-				EntityFactory.getInstance().getImageDAO().remove(imageKey);
+				EntityFactory.getInstance().getImageDAO().remove(imageId);
 				if (secondPart != null) {
-					EntityFactory.getInstance().getImageDAO().remove(secondPart.getKey());
+					EntityFactory.getInstance().getImageDAO().remove(secondPart.getId());
 				}
 			}
 		}
@@ -120,21 +119,21 @@ public class QuestionServiceImpl implements QuestionService {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		
 		ImageHolder imageHolderQuestion = null;
-		if (questionIncubator.getImageQuestion() != null) {
-			imageHolderQuestion = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestion());
+		if (questionIncubator.getImageQuestionId() != null) {
+			imageHolderQuestion = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestionId());
 		
 			ImageHolder imageHolderAnswer = null;
-			if (questionIncubator.getImageAnswer() != null) {
-				imageHolderAnswer = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswer());
+			if (questionIncubator.getImageAnswerId() != null) {
+				imageHolderAnswer = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswerId());
 			}
 			
 			if (imageHolderQuestion.isFull()) {
 				Question question = new Question(questionIncubator);
 				if (imageHolderAnswer == null || !imageHolderAnswer.isFull()) {
-					question.setImageAnswer(null);
+					question.setImageAnswerId(null);
 				}
 				EntityFactory.getInstance().getQuestionDAO().save(question);
-				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getKey());
+				EntityFactory.getInstance().getQuestionIncubatorDAO().remove(questionIncubator.getId());
 				databaseService.incrementVersion();
 			}
 		}

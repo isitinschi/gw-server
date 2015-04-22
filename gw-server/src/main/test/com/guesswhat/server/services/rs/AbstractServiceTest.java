@@ -61,10 +61,6 @@ public class AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());
 
 		// reader
-		invocationBuilder = client.target(securityUrl + "/delete/" + READER_LOGIN).request();
-		response = invocationBuilder.header(HttpHeaders.AUTHORIZATION, getAdminAuthorization()).delete();
-		Assert.assertEquals(200, response.getStatus());
-		
 		f = new Form();
 		f.param("username", READER_LOGIN);
 		f.param("password", READER_PASSWORD);
@@ -75,10 +71,6 @@ public class AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());
 
 		// writer
-		invocationBuilder = client.target(securityUrl + "/delete/" + WRITER_LOGIN).request();
-		response = invocationBuilder.header(HttpHeaders.AUTHORIZATION, getAdminAuthorization()).delete();
-		Assert.assertEquals(200, response.getStatus());
-		
 		f = new Form();
 		f.param("username", WRITER_LOGIN);
 		f.param("password", WRITER_PASSWORD);

@@ -7,18 +7,13 @@ import com.guesswhat.server.services.security.cfg.UserRole;
 public class UserDAOImpl extends UserDAO {
 
 	@Override
-	public void update(User t) {
-		// Nothing to do		
-	}
-
-	@Override
 	public User findAdmin() {
-		return findByFilter("role == '" + UserRole.ADMIN.toString() + "'");
+		return findFirstByFilter("role", UserRole.ADMIN);
 	}
 	
 	@Override
 	public User findUser(String username) {
-		return findByFilter("username == '" + username + "'");
+		return findFirstByFilter("username", username);
 	}
 	
 }

@@ -23,6 +23,8 @@ public class QuestionServiceTest extends AbstractServiceTest {
 	
 	@Test
 	public void testQuestions() {
+		createQuestions();
+		
 		List<QuestionDTO> questions = findQuestions();		
 		Assert.assertTrue(questions.size() == QUESTION_COUNT);
 		
@@ -72,7 +74,7 @@ public class QuestionServiceTest extends AbstractServiceTest {
 		}
 	}
 	
-	public void createQuestions() {
+	private void createQuestions() {
 		for (int i = 0; i < QUESTION_COUNT; ++i) {
 			QuestionDTO questionDTO = new QuestionDTO();
 			questionDTO.setAnswer1("answer1-" + i);

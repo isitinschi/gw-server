@@ -12,7 +12,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 
 import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.Key;
 import com.google.apphosting.api.ApiProxy.RequestTooLargeException;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
@@ -30,13 +29,13 @@ public class ImageServiceImpl implements ImageService {
 	public Response createQuestionImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
-		if (questionIncubator.getImageQuestion() == null) {
+		if (questionIncubator.getImageQuestionId() == null) {
 			imageHolder = new ImageHolder();
 			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
-			questionIncubator.setImageQuestion(imageHolder.getKey());
+			questionIncubator.setImageQuestionId(imageHolder.getId());
 			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
 		} else {
-			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestion());
+			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageQuestionId());
 		}
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
 			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
@@ -52,13 +51,13 @@ public class ImageServiceImpl implements ImageService {
 	public Response createAnswerImage(Long questionId, String imageType, HttpServletRequest request, InputStream fileInputStream) {
 		QuestionIncubator questionIncubator = EntityFactory.getInstance().getQuestionIncubatorDAO().find(questionId);
 		ImageHolder imageHolder = null;
-		if (questionIncubator.getImageAnswer() == null) {
+		if (questionIncubator.getImageAnswerId() == null) {
 			imageHolder = new ImageHolder();
 			EntityFactory.getInstance().getImageHolderDAO().save(imageHolder);
-			questionIncubator.setImageAnswer(imageHolder.getKey());
+			questionIncubator.setImageAnswerId(imageHolder.getId());
 			EntityFactory.getInstance().getQuestionIncubatorDAO().update(questionIncubator);
 		} else {
-			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswer());
+			imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(questionIncubator.getImageAnswerId());
 		}
 		if (buildImageHolder(imageHolder, imageType, fileInputStream)) {
 			EntityFactory.getInstance().getImageHolderDAO().update(imageHolder);
@@ -90,22 +89,22 @@ public class ImageServiceImpl implements ImageService {
 				image = new Image(blob1);
 				Image image2 = new Image(blob2);
 				EntityFactory.getInstance().getImageDAO().save(image2);
-				image.setSecondPart(image2.getKey().getId());
+				image.setSecondPart(image2.getId());
 				// try again :)
 				EntityFactory.getInstance().getImageDAO().save(image);
 		    }
-		    Key imageKey = image.getKey();
+		    Long imageId = image.getId();
 		    
 		    switch(ImageType.valueOf(imageType)) {
-		    	case XXHDPI:	imageHolder.setXxhdpiImage(imageKey);
+		    	case XXHDPI:	imageHolder.setXxhdpiImageId(imageId);
 		    					break;
-		    	case XHDPI:		imageHolder.setXhdpiImage(imageKey);
+		    	case XHDPI:		imageHolder.setXhdpiImageId(imageId);
 								break;
-		    	case HDPI:		imageHolder.setHdpiImage(imageKey);
+		    	case HDPI:		imageHolder.setHdpiImageId(imageId);
 								break;
-		    	case MDPI:		imageHolder.setMdpiImage(imageKey);
+		    	case MDPI:		imageHolder.setMdpiImageId(imageId);
 								break;
-		    	case LDPI:		imageHolder.setLdpiImage(imageKey);
+		    	case LDPI:		imageHolder.setLdpiImageId(imageId);
 								break;
 				default:		return false;
 		    }
@@ -123,9 +122,9 @@ public class ImageServiceImpl implements ImageService {
 	public Response findQuestionImage(Long questionId, String imageType) {
 		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
 		if (question != null) {
-			Key imageHolderKey = question.getImageQuestion();
-			if (imageHolderKey != null) {
-				byte [] bytes = findImage(imageHolderKey, imageType);
+			Long imageHolderId = question.getImageQuestionId();
+			if (imageHolderId != null) {
+				byte [] bytes = findImage(imageHolderId, imageType);
 				
 				if (bytes != null) {
 					return Response.ok(bytes).build();				
@@ -141,9 +140,9 @@ public class ImageServiceImpl implements ImageService {
 	public Response findAnswerImage(Long questionId, String imageType) {
 		Question question = EntityFactory.getInstance().getQuestionDAO().find(questionId);
 		if (question != null) {
-			Key imageHolderKey = question.getImageAnswer();
-			if (imageHolderKey != null) {
-				byte [] bytes = findImage(imageHolderKey, imageType);
+			Long imageHolderId = question.getImageAnswerId();
+			if (imageHolderId != null) {
+				byte [] bytes = findImage(imageHolderId, imageType);
 				
 				if (bytes != null) {
 					return Response.ok(bytes).build();			
@@ -154,28 +153,28 @@ public class ImageServiceImpl implements ImageService {
 		return Response.ok().build();
 	}
 	
-	private byte[] findImage(Key imageHolderKey, String imageType) {
-		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderKey);
-		Key imageKey = null;
+	private byte[] findImage(Long imageHolderId, String imageType) {
+		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
+		Long imageId = null;
 		
 		switch(ImageType.valueOf(imageType)) {
-	    	case XXHDPI:	imageKey = imageHolder.getXxhdpiImage();
+	    	case XXHDPI:	imageId = imageHolder.getXxhdpiImageId();
 	    					break;
-	    	case XHDPI:		imageKey = imageHolder.getXhdpiImage();
+	    	case XHDPI:		imageId = imageHolder.getXhdpiImageId();
 							break;
-	    	case HDPI:		imageKey = imageHolder.getHdpiImage();
+	    	case HDPI:		imageId = imageHolder.getHdpiImageId();
 							break;
-	    	case MDPI:		imageKey = imageHolder.getMdpiImage();
+	    	case MDPI:		imageId = imageHolder.getMdpiImageId();
 							break;
-	    	case LDPI:		imageKey = imageHolder.getLdpiImage();
+	    	case LDPI:		imageId = imageHolder.getLdpiImageId();
 							break;
 		}
 		
-		if (imageKey == null) {
+		if (imageId == null) {
 			return null;
 		}
 		
-		Image image = EntityFactory.getInstance().getImageDAO().find(imageKey);
+		Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
 		Image imageSecondPart = null;
 		if (image.getSecondPart() != null) {
 			imageSecondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());

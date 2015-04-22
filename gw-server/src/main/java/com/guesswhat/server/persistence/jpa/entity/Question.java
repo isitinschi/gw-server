@@ -1,34 +1,21 @@
 package com.guesswhat.server.persistence.jpa.entity;
 
-import javax.jdo.annotations.IdGeneratorStrategy;
-import javax.jdo.annotations.IdentityType;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-import javax.jdo.annotations.PrimaryKey;
-
-import com.google.appengine.api.datastore.Key;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.guesswhat.server.services.rs.backup.dto.QuestionBackupDTO;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
-@PersistenceCapable(identityType = IdentityType.APPLICATION)
+@Entity
 public class Question {
 
-	@PrimaryKey
-	@Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-	private Key key;
-	@Persistent
-	private Key imageQuestion;
-	@Persistent
-	private Key imageAnswer;
-	@Persistent
+	@Id
+	private Long id;
+	private Long imageQuestionId;
+	private Long imageAnswerId;
 	private String answer1;
-	@Persistent
 	private String answer2;
-	@Persistent
 	private String answer3;
-	@Persistent
 	private String answer4;
-	@Persistent
 	private String correctAnswer;
 
 	public Question() {
@@ -36,8 +23,8 @@ public class Question {
 	}
 
 	public Question(QuestionIncubator questionIncubator) {
-		this.imageQuestion = questionIncubator.getImageQuestion();
-		this.imageAnswer = questionIncubator.getImageAnswer();
+		this.imageQuestionId = questionIncubator.getImageQuestionId();
+		this.imageAnswerId = questionIncubator.getImageAnswerId();
 		this.answer1 = questionIncubator.getAnswer1();
 		this.answer2 = questionIncubator.getAnswer2();
 		this.answer3 = questionIncubator.getAnswer3();
@@ -61,20 +48,20 @@ public class Question {
 		this.correctAnswer = questionBackupDTO.getCorrectAnswer();
 	}
 
-	public Key getImageQuestion() {
-		return imageQuestion;
+	public Long getImageQuestionId() {
+		return imageQuestionId;
 	}
 
-	public void setImageQuestion(Key imageQuestion) {
-		this.imageQuestion = imageQuestion;
+	public void setImageQuestionId(Long imageQuestionId) {
+		this.imageQuestionId = imageQuestionId;
 	}
 
-	public Key getImageAnswer() {
-		return imageAnswer;
+	public Long getImageAnswerId() {
+		return imageAnswerId;
 	}
 
-	public void setImageAnswer(Key imageAnswer) {
-		this.imageAnswer = imageAnswer;
+	public void setImageAnswerId(Long imageAnswerId) {
+		this.imageAnswerId = imageAnswerId;
 	}
 
 	public String getAnswer1() {
@@ -117,12 +104,12 @@ public class Question {
 		this.correctAnswer = correctAnswer;
 	}
 	
-	public Key getKey() {
-		return key;
+	public Long getId() {
+		return id;
 	}
 
-	public void setKey(Key key) {
-		this.key = key;
+	public void setId(Long id) {
+		this.id = id;
 	}
 	
 }

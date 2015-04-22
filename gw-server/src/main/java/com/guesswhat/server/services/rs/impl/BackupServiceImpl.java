@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.appengine.api.datastore.Key;
 import com.guesswhat.server.persistence.jpa.cfg.EntityFactory;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
@@ -51,12 +50,12 @@ public class BackupServiceImpl implements BackupService {
 			for (Question question : questions) {
 				QuestionBackupDTO questionBackupDTO = new QuestionBackupDTO(question);
 				
-				Key imageHolderQuestionKey = question.getImageQuestion();
-				populateImages(questionBackupDTO.getImageBackupDTOQuestionMap(), imageHolderQuestionKey);
+				Long imageHolderQuestionId = question.getImageQuestionId();
+				populateImages(questionBackupDTO.getImageBackupDTOQuestionMap(), imageHolderQuestionId);
 				
-				Key imageHolderAnswerKey = question.getImageAnswer();
-				if (imageHolderAnswerKey != null) {
-					populateImages(questionBackupDTO.getImageBackupDTOAnswerMap(), imageHolderAnswerKey);
+				Long imageHolderAnswerId = question.getImageAnswerId();
+				if (imageHolderAnswerId != null) {
+					populateImages(questionBackupDTO.getImageBackupDTOAnswerMap(), imageHolderAnswerId);
 				}
 				
 				questionBackupDTOList.add(questionBackupDTO);
@@ -98,17 +97,17 @@ public class BackupServiceImpl implements BackupService {
 		return Response.serverError().build();
 	}
 
-	private void populateImages(Map<ImageType, ImageBackupDTO> imageBackupDTOList, Key imageHolderKey) {
-		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderKey);
-		imageBackupDTOList.put(ImageType.LDPI, getImage(imageHolder.getLdpiImage()));
-		imageBackupDTOList.put(ImageType.MDPI, getImage(imageHolder.getMdpiImage()));
-		imageBackupDTOList.put(ImageType.HDPI, getImage(imageHolder.getHdpiImage()));
-		imageBackupDTOList.put(ImageType.XHDPI, getImage(imageHolder.getXhdpiImage()));
-		imageBackupDTOList.put(ImageType.XXHDPI, getImage(imageHolder.getXxhdpiImage()));
+	private void populateImages(Map<ImageType, ImageBackupDTO> imageBackupDTOList, Long imageHolderId) {
+		ImageHolder imageHolder = EntityFactory.getInstance().getImageHolderDAO().find(imageHolderId);
+		imageBackupDTOList.put(ImageType.LDPI, getImage(imageHolder.getLdpiImageId()));
+		imageBackupDTOList.put(ImageType.MDPI, getImage(imageHolder.getMdpiImageId()));
+		imageBackupDTOList.put(ImageType.HDPI, getImage(imageHolder.getHdpiImageId()));
+		imageBackupDTOList.put(ImageType.XHDPI, getImage(imageHolder.getXhdpiImageId()));
+		imageBackupDTOList.put(ImageType.XXHDPI, getImage(imageHolder.getXxhdpiImageId()));
 	}
 
-	private ImageBackupDTO getImage(Key imageKey) {
-		Image image = EntityFactory.getInstance().getImageDAO().find(imageKey);
+	private ImageBackupDTO getImage(Long imageId) {
+		Image image = EntityFactory.getInstance().getImageDAO().find(imageId);
 		Image imageSecondPart = null;
 		if (image.getSecondPart() != null) {
 			imageSecondPart = EntityFactory.getInstance().getImageDAO().find(image.getSecondPart());
@@ -183,10 +182,10 @@ public class BackupServiceImpl implements BackupService {
 			
 			if (imageQuestionHolder.isFull()) {
 				EntityFactory.getInstance().getImageHolderDAO().save(imageQuestionHolder);
-				question.setImageQuestion(imageQuestionHolder.getKey());
+				question.setImageQuestionId(imageQuestionHolder.getId());
 				if (imageAnswerHolder.isFull()) {
 					EntityFactory.getInstance().getImageHolderDAO().save(imageAnswerHolder);
-					question.setImageAnswer(imageAnswerHolder.getKey());
+					question.setImageAnswerId(imageAnswerHolder.getId());
 				}
 				EntityFactory.getInstance().getQuestionDAO().save(question);
 			}
