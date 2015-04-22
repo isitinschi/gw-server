@@ -1,3 +1,6 @@
+================================================================================================================================
+-------------------------------------------------GENERAL INFORMATION------------------------------------------------------------
+
 Backend for GuessWhat client application
 
 To run server follow steps:
@@ -9,3 +12,9 @@ Use Eclipse update manager to install the tools in the version for your Eclipse 
 - SDKs
 
 To launch server: Run as -> Web Application Try http://localhost:8888/_ah/admin/datastore in your browser to see if server started
+
+================================================================================================================================
+-------------------------------------------------------TESTING-----------------------------------------------------------------
+
+All tests are INTEGRATION TESTS. Thus you need to start server before testing the system. Be careful, each test clears database before run.
+================================================================================================================================
