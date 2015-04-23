@@ -106,19 +106,34 @@ public class SecurityInterceptor implements javax.ws.rs.container.ContainerReque
     }
     
     private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet) {
-        boolean isAllowed = false;         
-
+    	// Authentication
+    	boolean authenticated = false;
         User user = userDAO.findUser(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user != null) {        	        
+	        if (user.getRole().equals(UserRole.READER.toString())) {
+	        	if (user.getPassword().equals(password)) {
+	        		authenticated = true;
+	        	}
+	        } else {
+	        	try {
+					authenticated = SecuredField.check(password, user.getPassword());
+				} catch (Exception e) {
+					authenticated  = false;
+				}
+	        }
+        }
+        
+        if (!authenticated) {
         	return false;
         }
         
+        // Authorization
+        boolean authorized = false;         
         String userRole = user.getRole();
-        if (rolesSet.contains(userRole))
-        {
-            isAllowed = true;
+        if (rolesSet.contains(userRole)) {
+        	authorized = true;
         }
-        return isAllowed;
+        return authorized;
     }
      
 }

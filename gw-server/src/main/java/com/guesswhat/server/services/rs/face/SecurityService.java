@@ -11,11 +11,11 @@ public interface SecurityService {
 
 	@POST
 	@Path("/create")
-	Response createUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("role") String role);
+	Response createUser(@FormParam("username") String username, @FormParam("password") String password, @FormParam("role") String role) throws Exception;
 	
 	@POST
 	@Path("/create/admin")
-	Response createAdmin(@FormParam("username") String username, @FormParam("password") String password);
+	Response createAdmin(@FormParam("username") String username, @FormParam("password") String password) throws Exception;
 	
 	@DELETE
 	@Path("/delete/{username}")
