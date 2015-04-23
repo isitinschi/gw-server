@@ -3,8 +3,10 @@ package com.guesswhat.server.services.security.cfg;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+
+import com.google.common.io.BaseEncoding;
+
 import java.security.SecureRandom;
-import org.apache.commons.codec.binary.Base64;
 
 public class SecuredField {
     // The higher the number of iterations the more 
@@ -20,7 +22,7 @@ public class SecuredField {
     public static String getSaltedHash(String password) throws Exception {
         byte[] salt = SecureRandom.getInstance("SHA1PRNG").generateSeed(saltLen);
         // store the salt with the password
-        return Base64.encodeBase64String(salt) + "$" + hash(password, salt);
+        return BaseEncoding.base64().encode(salt) + "$" + hash(password, salt);
     }
 
     /** Checks whether given plaintext password corresponds 
@@ -31,12 +33,11 @@ public class SecuredField {
             throw new IllegalStateException(
                 "The stored password have the form 'salt$hash'");
         }
-        String hashOfInput = hash(password, Base64.decodeBase64(saltAndPass[0]));
+        String hashOfInput = hash(password, BaseEncoding.base64().decode(saltAndPass[0]));
         return hashOfInput.equals(saltAndPass[1]);
     }
 
-    // using PBKDF2 from Sun, an alternative is https://github.com/wg/scrypt
-    // cf. http://www.unlimitednovelty.com/2012/03/dont-use-bcrypt.html
+    // using PBKDF2 from Sun
     private static String hash(String password, byte[] salt) throws Exception {
         if (password == null || password.length() == 0)
             throw new IllegalArgumentException("Empty passwords are not supported.");
@@ -44,6 +45,6 @@ public class SecuredField {
         SecretKey key = f.generateSecret(new PBEKeySpec(
             password.toCharArray(), salt, iterations, desiredKeyLen)
         );
-        return Base64.encodeBase64String(key.getEncoded());
+        return BaseEncoding.base64().encode(key.getEncoded());
     }
 }

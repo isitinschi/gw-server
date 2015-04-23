@@ -9,11 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.apphosting.api.ApiProxy.RequestTooLargeException;
+import com.google.common.io.ByteStreams;
 import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
 import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
 import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
@@ -81,7 +81,7 @@ public class ImageServiceImpl implements ImageService {
 	public boolean buildImageHolder(ImageHolder imageHolder, String imageType, InputStream source) {
 	    Blob blob = null;
 	    try {
-	    	byte[] bytes = IOUtils.toByteArray(source);
+	    	byte[] bytes = ByteStreams.toByteArray(source);
 			blob = new Blob(bytes);
 		
 		    Image image = new Image(blob);
