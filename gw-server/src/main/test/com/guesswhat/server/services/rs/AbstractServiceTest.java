@@ -237,6 +237,24 @@ public class AbstractServiceTest {
 		return backup;
 	}
 	
+	protected byte [] downloadImage(String questionId, ImageType type, String path) {
+		String url = getImageUrl() + "/find/" + path + "/" + questionId + "/" + type;
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(url);
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization()).accept(MediaType.APPLICATION_OCTET_STREAM);
+		
+		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
+		Assert.assertEquals(200, response.getStatus());
+		
+		byte[] bytes = response.readEntity(byte [].class);
+		
+		return bytes;
+	}
+	
 	protected void uploadBackup(byte [] backup) {
 		String url = getBackupUrl();
 		

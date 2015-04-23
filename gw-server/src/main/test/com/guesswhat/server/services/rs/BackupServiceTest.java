@@ -28,7 +28,7 @@ public class BackupServiceTest extends AbstractServiceTest {
 		Assert.assertFalse(records.isEmpty());
 	}
 	
-	public void createQuestions() {
+	private void createQuestions() {
 		for (int i = 0; i < QUESTION_COUNT; ++i) {
 			QuestionDTO questionDTO = new QuestionDTO();
 			questionDTO.setAnswer1("answer1-" + i);
@@ -43,7 +43,7 @@ public class BackupServiceTest extends AbstractServiceTest {
 		}
 	}
 	
-	public void createRecords() {
+	private void createRecords() {
 		for (int i = 0; i < RECORDS_COUNT; ++i) {
 			createRecord("user" + i, i);
 		}
