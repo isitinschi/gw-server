@@ -13,7 +13,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER/App Engine"/>
 	<classpathentry excluding="**" kind="src" output="war/WEB-INF/classes" path="src">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
@@ -24,5 +23,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER/App Engine (1)"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

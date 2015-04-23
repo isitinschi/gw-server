@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
-		<appengine.target.version>1.9.18</appengine.target.version>
+		<appengine.target.version>1.9.19</appengine.target.version>
 		<jersey.target.version>2.17</jersey.target.version>
 		<spring.target.version>4.1.6.RELEASE</spring.target.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
