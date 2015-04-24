@@ -7,6 +7,7 @@ import java.util.Map;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.services.rs.dto.ImageType;
 
+@SuppressWarnings("serial")
 public class QuestionBackupDTO implements Serializable {
 
 	private String answer1;

@@ -2,6 +2,7 @@ package com.guesswhat.server.services.rs.backup.dto;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class ImageBackupDTO implements Serializable {
 
 	private byte [] bytes;

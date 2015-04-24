@@ -49,14 +49,14 @@ public class AbstractServiceTest {
 	}
 	
 	private void handshake() throws InterruptedException {
-		String securityUrl = getSecurityUrl();
 		Client client = ClientBuilder.newClient();		
+		WebTarget webTarget = client.target(getSecurityUrl());
 
 		// admin
 		Form f = new Form();
 		f.param("username", ADMIN_LOGIN);
 		f.param("password", ADMIN_PASSWORD);
-		Builder invocationBuilder = client.target(securityUrl + "/create/admin").request();	
+		Builder invocationBuilder = webTarget.path("create").path("admin").request();	
 		Response response = invocationBuilder.post(Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE));	
 		Assert.assertEquals(200, response.getStatus());
 
@@ -64,8 +64,8 @@ public class AbstractServiceTest {
 		f = new Form();
 		f.param("username", READER_LOGIN);
 		f.param("password", READER_PASSWORD);
-		f.param("role", UserRole.READER.toString());		
-		invocationBuilder = client.target(securityUrl + "/create").request();
+		f.param("role", UserRole.READER.toString());	
+		invocationBuilder = webTarget.path("create").request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getAdminAuthorization());
 		response = invocationBuilder.post(Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE));		
 		Assert.assertEquals(200, response.getStatus());
@@ -75,7 +75,7 @@ public class AbstractServiceTest {
 		f.param("username", WRITER_LOGIN);
 		f.param("password", WRITER_PASSWORD);
 		f.param("role", UserRole.WRITER.toString());
-		invocationBuilder = client.target(securityUrl + "/create").request();
+		invocationBuilder = webTarget.path("create").request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getAdminAuthorization());
 		response = invocationBuilder.post(Entity.entity(f, MediaType.APPLICATION_FORM_URLENCODED_TYPE));		
 		Assert.assertEquals(200, response.getStatus());
@@ -87,11 +87,10 @@ public class AbstractServiceTest {
 		buildQuestion(questionId);
 	}
 	
-	protected void createRecord(String userId, int points) {
-		String recordUrl = getRecordUrl();
-		
+	protected void createRecord(String userId, int points) {		
 		Client client = ClientBuilder.newClient();
-		Builder invocationBuilder = client.target(recordUrl).request();
+		WebTarget webTarget = client.target(getRecordUrl());
+		Builder invocationBuilder = webTarget.request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
 		
 		RecordDTO recordDTO = new RecordDTO();
@@ -101,11 +100,24 @@ public class AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected String uploadQuestion(QuestionDTO questionDTO) {
-		String questionUrl = getQuestionUrl();
-		
+	protected int findRecordPlace(String userId) {
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(questionUrl);
+		WebTarget webTarget = client.target(getRecordUrl());
+
+		Builder invocationBuilder = webTarget.request();		
+		invocationBuilder =  webTarget.path("place").path(userId).request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
+		Response response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
+		Assert.assertEquals(200, response.getStatus());
+		
+		int userPlace = response.readEntity(Integer.class);
+		
+		return userPlace;
+	}
+	
+	protected String uploadQuestion(QuestionDTO questionDTO) {		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
 		
 		Builder invocationBuilder = webTarget.path("create").request();
@@ -126,18 +138,16 @@ public class AbstractServiceTest {
 		}		
 	}
 	
-	private void uploadImage(String questionId, ImageType type, String path, byte [] imageBytes) {
-		String imageUrl = getImageUrl() + "/create/" + path + "/" + questionId + "/" + type;
-		
+	private void uploadImage(String questionId, ImageType type, String path, byte [] imageBytes) {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(imageUrl);
+		WebTarget webTarget = client.target(getImageUrl());
 		Response response = null;
 		
 		InputStream is = new ByteArrayInputStream(imageBytes);
 		
 		String sContentDisposition = "attachment; filename=\"" + "tempFile"+"\"";
 		
-		Builder invocationBuilder = webTarget.request();
+		Builder invocationBuilder = webTarget.path("create").path(path).path(questionId).path(type.toString()).request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization()).header("Content-Disposition", sContentDisposition);
 		
 		response = invocationBuilder.post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));		
@@ -145,38 +155,32 @@ public class AbstractServiceTest {
 		
 	}
 
-	protected void buildQuestion(String questionId) {
-		String questionUrl = getQuestionUrl() + "/build/" + questionId;
-		
+	protected void buildQuestion(String questionId) {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(questionUrl);
+		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.request();
+		Builder invocationBuilder = webTarget.path("build").path(questionId).request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
 		response = invocationBuilder.put(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected void deleteQuestion(String questionId) {
-		String questionUrl = getQuestionUrl();
-		
+	protected void deleteQuestion(String questionId) {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(questionUrl);
+		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.path("delete/" + questionId).request();
+		Builder invocationBuilder = webTarget.path("delete").path(questionId).request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
 		
 		response = invocationBuilder.delete();
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected void dropAllData() {
-		String databaseUrl = getDatabaseUrl();
-		
+	protected void dropAllData() {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(databaseUrl);
+		WebTarget webTarget = client.target(getDatabaseUrl());
 		Response response = null;
 		
 		Builder invocationBuilder = webTarget.path("drop").request();
@@ -186,11 +190,9 @@ public class AbstractServiceTest {
 		Assert.assertTrue(response.getStatus() == 200 || response.getStatus() == 401);
 	}
 	
-	protected List<QuestionDTO> findQuestions() {
-		String questionUrl = getQuestionUrl();
-		
+	protected List<QuestionDTO> findQuestions() {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(questionUrl);
+		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
 		
 		Builder invocationBuilder = webTarget.path("findall").request();
@@ -205,9 +207,8 @@ public class AbstractServiceTest {
 	}
 	
 	protected List<RecordDTO> findTopRecords() {
-		String recordUrl = getRecordUrl();		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(recordUrl);
+		WebTarget webTarget = client.target(getRecordUrl());
 		
 		Builder invocationBuilder = webTarget.path("top").request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
@@ -219,11 +220,9 @@ public class AbstractServiceTest {
 		return records;
 	}
 	
-	protected byte [] downloadBackup() {
-		String url = getBackupUrl();
-		
+	protected byte [] downloadBackup() {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
+		WebTarget webTarget = client.target(getBackupUrl());
 		Response response = null;
 		
 		Builder invocationBuilder = webTarget.path("download").request();
@@ -237,14 +236,12 @@ public class AbstractServiceTest {
 		return backup;
 	}
 	
-	protected byte [] downloadImage(String questionId, ImageType type, String path) {
-		String url = getImageUrl() + "/find/" + path + "/" + questionId + "/" + type;
-		
+	protected byte [] downloadImage(String questionId, ImageType type, String path) {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
+		WebTarget webTarget = client.target(getImageUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.request();
+		Builder invocationBuilder = webTarget.path("find").path(path).path(questionId).path(type.toString()).request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization()).accept(MediaType.APPLICATION_OCTET_STREAM);
 		
 		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
@@ -255,11 +252,9 @@ public class AbstractServiceTest {
 		return bytes;
 	}
 	
-	protected void uploadBackup(byte [] backup) {
-		String url = getBackupUrl();
-		
+	protected void uploadBackup(byte [] backup) {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(url);
+		WebTarget webTarget = client.target(getBackupUrl());
 		Response response = null;
 		
 		InputStream is = new ByteArrayInputStream(backup);
