@@ -1,7 +1,7 @@
 =============================================================================================================================
                                                 GENERAL INFORMATION
 
-GW-SERVER project is used for persisting "Quize" data: questions, user records etc. This project is supposed to be used together with GW-MANAGER (the branch for this project will be created soon), which main role is to upload question data and manage it, and GW-CLIENT (third-party project, I will add link to the branch later), which is Android device client, that uses server as backend.
+GW-SERVER project is used for persisting "Quiz" data: questions, user records etc. This project is supposed to be used together with GW-MANAGER (the branch for this project will be created soon), which main role is to upload question data and manage it, and GW-CLIENT (third-party project, I will add link to the branch later), which is Android device client, that uses server as backend.
 
 The project is based on Google App Engine Platform and is used as backend for Android client (not necessary, actually it could be used for any client). Generally server consists of two modules: Web Services part and Persistence part. The server is able to:
 
