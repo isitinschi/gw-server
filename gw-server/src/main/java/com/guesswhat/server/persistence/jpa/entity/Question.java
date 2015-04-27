@@ -2,7 +2,6 @@ package com.guesswhat.server.persistence.jpa.entity;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import com.guesswhat.server.services.rs.backup.dto.QuestionBackupDTO;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 @Entity
@@ -21,16 +20,6 @@ public class Question {
 	public Question() {
 
 	}
-
-	public Question(QuestionIncubator questionIncubator) {
-		this.imageQuestionId = questionIncubator.getImageQuestionId();
-		this.imageAnswerId = questionIncubator.getImageAnswerId();
-		this.answer1 = questionIncubator.getAnswer1();
-		this.answer2 = questionIncubator.getAnswer2();
-		this.answer3 = questionIncubator.getAnswer3();
-		this.answer4 = questionIncubator.getAnswer4();
-		this.correctAnswer = questionIncubator.getCorrectAnswer();
-	}
 	
 	public Question(QuestionDTO questionDTO) {
 		this.answer1 = questionDTO.getAnswer1();
@@ -38,14 +27,6 @@ public class Question {
 		this.answer3 = questionDTO.getAnswer3();
 		this.answer4 = questionDTO.getAnswer4();
 		this.correctAnswer = questionDTO.getCorrectAnswer();
-	}
-
-	public Question(QuestionBackupDTO questionBackupDTO) {
-		this.answer1 = questionBackupDTO.getAnswer1();
-		this.answer2 = questionBackupDTO.getAnswer2();
-		this.answer3 = questionBackupDTO.getAnswer3();
-		this.answer4 = questionBackupDTO.getAnswer4();
-		this.correctAnswer = questionBackupDTO.getCorrectAnswer();
 	}
 
 	public Long getImageQuestionId() {

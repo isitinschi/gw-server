@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Random;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -21,6 +22,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import com.guesswhat.server.services.rs.dto.ComposedQuestionDTO;
+import com.guesswhat.server.services.rs.dto.ImageDTO;
 import com.guesswhat.server.services.rs.dto.ImageType;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 import com.guesswhat.server.services.rs.dto.RecordDTO;
@@ -82,9 +85,36 @@ public class AbstractServiceTest {
 	}
 	
 	protected void createQuestion(QuestionDTO questionDTO, byte [] imageBytes) {
-		String questionId = uploadQuestion(questionDTO);
-		uploadImages(questionId, imageBytes);
-		buildQuestion(questionId);
+		ComposedQuestionDTO composedQuestionDTO = new ComposedQuestionDTO();
+		composedQuestionDTO.setQuestionDTO(questionDTO);
+		
+		ImageDTO imageQuestionDTO = new ImageDTO();
+		imageQuestionDTO.setLdpiImageId(imageBytes);
+		imageQuestionDTO.setMdpiImageId(imageBytes);
+		imageQuestionDTO.setHdpiImageId(imageBytes);
+		imageQuestionDTO.setXhdpiImageId(imageBytes);
+		imageQuestionDTO.setXxhdpiImageId(imageBytes);
+		composedQuestionDTO.setImageQuestionDTO(imageQuestionDTO);
+		
+		if ((new Random()).nextInt() % 3 == 0) {
+			ImageDTO imageAnswerDTO = new ImageDTO();
+			imageAnswerDTO.setLdpiImageId(imageBytes);
+			imageAnswerDTO.setMdpiImageId(imageBytes);
+			imageAnswerDTO.setHdpiImageId(imageBytes);
+			imageAnswerDTO.setXhdpiImageId(imageBytes);
+			imageAnswerDTO.setXxhdpiImageId(imageBytes);
+			composedQuestionDTO.setImageAnswerDTO(imageAnswerDTO);
+		}
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getQuestionUrl());
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.path("create").request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
+		
+		response = invocationBuilder.put(Entity.entity(composedQuestionDTO, MediaType.APPLICATION_JSON_TYPE));
+		Assert.assertEquals(200, response.getStatus());
 	}
 	
 	protected void createRecord(String userId, int points) {		
@@ -113,57 +143,6 @@ public class AbstractServiceTest {
 		int userPlace = response.readEntity(Integer.class);
 		
 		return userPlace;
-	}
-	
-	protected String uploadQuestion(QuestionDTO questionDTO) {		
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getQuestionUrl());
-		Response response = null;
-		
-		Builder invocationBuilder = webTarget.path("create").request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
-		
-		response = invocationBuilder.put(Entity.entity(questionDTO, MediaType.APPLICATION_JSON_TYPE));
-		Assert.assertEquals(200, response.getStatus());
-		
-		return response.readEntity(String.class);
-	}
-	
-	protected void uploadImages(String questionId, byte [] imageBytes) {
-		for (ImageType type : ImageType.values()) {
-			uploadImage(questionId, type, "question", imageBytes);
-			if (Long.valueOf(questionId) % 3 == 0) {
-				uploadImage(questionId, type, "answer", imageBytes);
-			}
-		}		
-	}
-	
-	private void uploadImage(String questionId, ImageType type, String path, byte [] imageBytes) {		
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getImageUrl());
-		Response response = null;
-		
-		InputStream is = new ByteArrayInputStream(imageBytes);
-		
-		String sContentDisposition = "attachment; filename=\"" + "tempFile"+"\"";
-		
-		Builder invocationBuilder = webTarget.path("create").path(path).path(questionId).path(type.toString()).request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization()).header("Content-Disposition", sContentDisposition);
-		
-		response = invocationBuilder.post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));		
-		Assert.assertEquals(200, response.getStatus());
-		
-	}
-
-	protected void buildQuestion(String questionId) {		
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getQuestionUrl());
-		Response response = null;
-		
-		Builder invocationBuilder = webTarget.path("build").path(questionId).request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
-		response = invocationBuilder.put(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
-		Assert.assertEquals(200, response.getStatus());
 	}
 	
 	protected void deleteQuestion(String questionId) {		

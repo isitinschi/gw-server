@@ -1,8 +1,11 @@
 package com.guesswhat.server.services.rs.dto;
 
+import java.io.Serializable;
+
 import com.guesswhat.server.persistence.jpa.entity.Question;
 
-public class QuestionDTO {
+@SuppressWarnings("serial")
+public class QuestionDTO implements Serializable {
 
 	private String id;
 	private String answer1;

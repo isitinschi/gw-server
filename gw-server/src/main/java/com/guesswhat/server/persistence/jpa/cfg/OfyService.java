@@ -7,7 +7,6 @@ import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Information;
 import com.guesswhat.server.persistence.jpa.entity.Question;
-import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 import com.guesswhat.server.persistence.jpa.entity.User;
 
@@ -17,7 +16,6 @@ public class OfyService {
         factory().register(ImageHolder.class);
         factory().register(Information.class);
         factory().register(Question.class);
-        factory().register(QuestionIncubator.class);
         factory().register(Record.class);
         factory().register(User.class);
     }

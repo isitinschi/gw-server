@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.guesswhat.server.services.rs.dto.ComposedQuestionDTO;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 
 public interface QuestionService {
@@ -18,12 +19,7 @@ public interface QuestionService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("/create")
-	Response createQuestion(QuestionDTO questionDTO);
-	
-	@PUT
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Path("/build/{questionId}")
-	Response buildQuestion(@PathParam("questionId") Long questionId);
+	Response createQuestion(ComposedQuestionDTO questionDTO);
 	
 	@DELETE
 	@Path("/delete/{questionId}")
@@ -43,4 +39,5 @@ public interface QuestionService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/findall")
 	Response findQuestions();
+	
 }

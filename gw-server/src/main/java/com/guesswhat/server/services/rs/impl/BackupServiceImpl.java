@@ -1,13 +1,11 @@
 package com.guesswhat.server.services.rs.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
@@ -26,21 +24,21 @@ import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 import com.guesswhat.server.persistence.jpa.entity.User;
-import com.guesswhat.server.services.rs.backup.dto.BackupDTO;
-import com.guesswhat.server.services.rs.backup.dto.ImageBackupDTO;
-import com.guesswhat.server.services.rs.backup.dto.QuestionBackupDTO;
-import com.guesswhat.server.services.rs.backup.dto.RecordBackupDTO;
-import com.guesswhat.server.services.rs.backup.dto.UserBackupDTO;
-import com.guesswhat.server.services.rs.dto.ImageType;
+import com.guesswhat.server.services.rs.dto.BackupDTO;
+import com.guesswhat.server.services.rs.dto.ComposedQuestionDTO;
+import com.guesswhat.server.services.rs.dto.ImageDTO;
+import com.guesswhat.server.services.rs.dto.QuestionDTO;
+import com.guesswhat.server.services.rs.dto.RecordDTO;
+import com.guesswhat.server.services.rs.dto.UserDTO;
 import com.guesswhat.server.services.rs.face.BackupService;
 import com.guesswhat.server.services.rs.face.DatabaseService;
-import com.guesswhat.server.services.rs.face.ImageService;
+import com.guesswhat.server.services.rs.face.QuestionService;
 import com.guesswhat.server.services.security.cfg.UserRole;
 
 @Path("/backup")
 public class BackupServiceImpl implements BackupService {
 
-	@Autowired private ImageService imageService;
+	@Autowired private QuestionService questionService;
 	@Autowired private DatabaseService databaseService;
 	
 	@Autowired private QuestionDAO questionDAO;
@@ -54,41 +52,45 @@ public class BackupServiceImpl implements BackupService {
 	public Response downloadBackup() {		
 		try {			
 			List<Question> questions = questionDAO.findAll();
-			List<QuestionBackupDTO> questionBackupDTOList = new ArrayList<QuestionBackupDTO>();
+			List<ComposedQuestionDTO> questionDTOList = new ArrayList<ComposedQuestionDTO>();
 			for (Question question : questions) {
-				QuestionBackupDTO questionBackupDTO = new QuestionBackupDTO(question);
+				ComposedQuestionDTO composedQuestionDTO = new ComposedQuestionDTO();
+				QuestionDTO questionDTO = new QuestionDTO(question);
+				composedQuestionDTO.setQuestionDTO(questionDTO);
 				
 				Long imageHolderQuestionId = question.getImageQuestionId();
-				populateImages(questionBackupDTO.getImageBackupDTOQuestionMap(), imageHolderQuestionId);
+				ImageDTO imageDTO = populateImageDTO(imageHolderQuestionId);
+				composedQuestionDTO.setImageQuestionDTO(imageDTO);
 				
 				Long imageHolderAnswerId = question.getImageAnswerId();
 				if (imageHolderAnswerId != null) {
-					populateImages(questionBackupDTO.getImageBackupDTOAnswerMap(), imageHolderAnswerId);
+					imageDTO = populateImageDTO(imageHolderAnswerId);
+					composedQuestionDTO.setImageQuestionDTO(imageDTO);
 				}
 				
-				questionBackupDTOList.add(questionBackupDTO);
+				questionDTOList.add(composedQuestionDTO);
 			}
 			
 			List<User> users = userDAO.findAll();
-			List<UserBackupDTO> userBackupDTOList = new ArrayList<UserBackupDTO>();
+			List<UserDTO> userDTOList = new ArrayList<UserDTO>();
 			for (User user : users) {
 				if (!user.getRole().equals(UserRole.ADMIN.toString())) {
-					UserBackupDTO userBackupDTO = new UserBackupDTO(user.getUsername(), user.getPassword(), user.getRole());
-					userBackupDTOList.add(userBackupDTO);
+					UserDTO userBackupDTO = new UserDTO(user.getUsername(), user.getPassword(), user.getRole());
+					userDTOList.add(userBackupDTO);
 				}
 			}
 			
 			List<Record> records = recordDAO.findAll();
-			List<RecordBackupDTO> recordBackupDTOList = new ArrayList<RecordBackupDTO>();
+			List<RecordDTO> recordDTOList = new ArrayList<RecordDTO>();
 			for (Record record : records) {
-				RecordBackupDTO userBackupDTO = new RecordBackupDTO(record.getUserId(), record.getPoints());
-				recordBackupDTOList.add(userBackupDTO);
+				RecordDTO userBackupDTO = new RecordDTO(record.getUserId(), record.getPoints());
+				recordDTOList.add(userBackupDTO);
 			}
 			
 			BackupDTO backup = new BackupDTO();
-			backup.setQuestionBackupDTOList(questionBackupDTOList);
-			backup.setUserBackupDTOList(userBackupDTOList);
-			backup.setRecordBackupDTOList(recordBackupDTOList);
+			backup.setQuestionDTOList(questionDTOList);
+			backup.setUserDTOList(userDTOList);
+			backup.setRecordDTOList(recordDTOList);
 			
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(buffer);
@@ -105,16 +107,18 @@ public class BackupServiceImpl implements BackupService {
 		return Response.serverError().build();
 	}
 
-	private void populateImages(Map<ImageType, ImageBackupDTO> imageBackupDTOList, Long imageHolderId) {
+	private ImageDTO populateImageDTO(Long imageHolderId) {
+		ImageDTO imageDTO = new ImageDTO();
 		ImageHolder imageHolder = imageHolderDAO.find(imageHolderId);
-		imageBackupDTOList.put(ImageType.LDPI, getImage(imageHolder.getLdpiImageId()));
-		imageBackupDTOList.put(ImageType.MDPI, getImage(imageHolder.getMdpiImageId()));
-		imageBackupDTOList.put(ImageType.HDPI, getImage(imageHolder.getHdpiImageId()));
-		imageBackupDTOList.put(ImageType.XHDPI, getImage(imageHolder.getXhdpiImageId()));
-		imageBackupDTOList.put(ImageType.XXHDPI, getImage(imageHolder.getXxhdpiImageId()));
+		imageDTO.setLdpiImageId(getImage(imageHolder.getLdpiImageId()));
+		imageDTO.setMdpiImageId(getImage(imageHolder.getMdpiImageId()));
+		imageDTO.setHdpiImageId(getImage(imageHolder.getHdpiImageId()));
+		imageDTO.setXhdpiImageId(getImage(imageHolder.getXhdpiImageId()));
+		imageDTO.setXxhdpiImageId(getImage(imageHolder.getXxhdpiImageId()));
+		return imageDTO;
 	}
 
-	private ImageBackupDTO getImage(Long imageId) {
+	private byte [] getImage(Long imageId) {
 		Image image = imageDAO.find(imageId);
 		Image imageSecondPart = null;
 		if (image.getSecondPart() != null) {
@@ -128,7 +132,7 @@ public class BackupServiceImpl implements BackupService {
 			bytes = image.getImage().getBytes();
 		}
 		
-		return new ImageBackupDTO(bytes);
+		return bytes;
 	}
 	
 	private byte[] concat(byte[] a, byte[] b) {
@@ -171,49 +175,21 @@ public class BackupServiceImpl implements BackupService {
 		imageHolderDAO.removeAll();
 		imageDAO.removeAll();
 		
-		for (QuestionBackupDTO questionBackupDTO : backupDTO.getQuestionBackupDTOList()) {
-			Question question = new Question(questionBackupDTO);
-			
-			ImageHolder imageQuestionHolder = new ImageHolder();
-			for (ImageType imageType : questionBackupDTO.getImageBackupDTOQuestionMap().keySet()) {
-				ImageBackupDTO imageBackupDTO = questionBackupDTO.getImageBackupDTOQuestionMap().get(imageType);
-				InputStream inputStream = new ByteArrayInputStream(imageBackupDTO.getBytes()); 
-				imageService.buildImageHolder(imageQuestionHolder, imageType.toString(), inputStream);
-			}
-			
-			ImageHolder imageAnswerHolder = new ImageHolder();
-			for (ImageType imageType : questionBackupDTO.getImageBackupDTOAnswerMap().keySet()) {
-				ImageBackupDTO imageBackupDTO = questionBackupDTO.getImageBackupDTOQuestionMap().get(imageType);
-				InputStream inputStream = new ByteArrayInputStream(imageBackupDTO.getBytes()); 
-				imageService.buildImageHolder(imageAnswerHolder, imageType.toString(), inputStream);
-			}
-			
-			if (imageQuestionHolder.isFull()) {
-				imageHolderDAO.save(imageQuestionHolder);
-				question.setImageQuestionId(imageQuestionHolder.getId());
-				if (imageAnswerHolder.isFull()) {
-					imageHolderDAO.save(imageAnswerHolder);
-					question.setImageAnswerId(imageAnswerHolder.getId());
-				}
-				questionDAO.save(question);
-			}
+		for (ComposedQuestionDTO composedQuestionDTO : backupDTO.getQuestionDTOList()) {
+			questionService.createQuestion(composedQuestionDTO);
 		}
 		
-		for (RecordBackupDTO recordBackupDTO : backupDTO.getRecordBackupDTOList()) {
+		for (RecordDTO recordBackupDTO : backupDTO.getRecordDTOList()) {
 			Record record = new Record(recordBackupDTO.getUserId(), recordBackupDTO.getPoints());
 			recordDAO.save(record);
 		}
 		
-		for (UserBackupDTO userBackupDTO : backupDTO.getUserBackupDTOList()) {
+		for (UserDTO userBackupDTO : backupDTO.getUserDTOList()) {
 			User user = new User(userBackupDTO.getUsername(), userBackupDTO.getPassword(), userBackupDTO.getRole());
 			if (!user.getRole().equals(UserRole.ADMIN.toString())) {
 				userDAO.save(user);
 			}
 		}
-	}
-
-	public void setImageService(ImageService imageService) {
-		this.imageService = imageService;
 	}
 
 	public void setDatabaseService(DatabaseService databaseService) {

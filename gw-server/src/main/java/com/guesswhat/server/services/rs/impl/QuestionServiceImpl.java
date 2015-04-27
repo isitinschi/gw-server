@@ -12,22 +12,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
 import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
 import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
-import com.guesswhat.server.persistence.jpa.dao.QuestionIncubatorDAO;
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Question;
-import com.guesswhat.server.persistence.jpa.entity.QuestionIncubator;
+import com.guesswhat.server.services.rs.dto.ComposedQuestionDTO;
+import com.guesswhat.server.services.rs.dto.ImageDTO;
+import com.guesswhat.server.services.rs.dto.ImageType;
 import com.guesswhat.server.services.rs.dto.QuestionDTO;
 import com.guesswhat.server.services.rs.face.DatabaseService;
+import com.guesswhat.server.services.rs.face.ImageService;
 import com.guesswhat.server.services.rs.face.QuestionService;
 
 @Path("/questions")
 public class QuestionServiceImpl implements QuestionService {
 
 	@Autowired private DatabaseService databaseService;
+	@Autowired private ImageService imageService;
 	
 	@Autowired private QuestionDAO questionDAO;
-	@Autowired QuestionIncubatorDAO questionIncubatorDAO;
 	@Autowired private ImageHolderDAO imageHolderDAO;
 	@Autowired private ImageDAO imageDAO;
 	
@@ -46,11 +48,90 @@ public class QuestionServiceImpl implements QuestionService {
 
 	@Override
 	@RolesAllowed("WRITER")
-	public Response createQuestion(QuestionDTO questionDTO) {
-		QuestionIncubator questionIncubator = new QuestionIncubator(questionDTO);
-		questionIncubatorDAO.save(questionIncubator);
+	public Response createQuestion(ComposedQuestionDTO composedQuestionDTO) {
+		if (validate(composedQuestionDTO)) {
+			Question question = new Question(composedQuestionDTO.getQuestionDTO());
+			ImageHolder imageQuestionHolder = null;
+			ImageHolder imageAnswerHolder = null;
+			if (composedQuestionDTO.getImageQuestionDTO() != null) {
+				imageQuestionHolder = buildImageHolder(composedQuestionDTO.getImageQuestionDTO());
+			}
+			if (imageQuestionHolder != null) {
+				question.setImageQuestionId(imageQuestionHolder.getId());
+				
+				if (composedQuestionDTO.getImageAnswerDTO() != null) {
+					imageAnswerHolder = buildImageHolder(composedQuestionDTO.getImageAnswerDTO());					
+					if (imageAnswerHolder != null) {
+						question.setImageAnswerId(imageAnswerHolder.getId());
+					}
+				}			
+				
+				questionDAO.save(question);
+				databaseService.incrementVersion();
+			}
+		}
 		
-		return Response.ok(questionIncubator.getId()).build();
+		return Response.ok().build();
+	}
+	
+	private boolean validate(ComposedQuestionDTO composedQuestionDTO) {
+		QuestionDTO questionDTO = composedQuestionDTO.getQuestionDTO();
+		if (questionDTO.getAnswer1() == null || questionDTO.getAnswer1().isEmpty() ||
+				questionDTO.getAnswer2() == null || questionDTO.getAnswer2().isEmpty() ||
+				questionDTO.getAnswer3() == null || questionDTO.getAnswer3().isEmpty() ||
+				questionDTO.getAnswer4() == null || questionDTO.getAnswer4().isEmpty() ||
+				questionDTO.getCorrectAnswer() == null || questionDTO.getCorrectAnswer().isEmpty()) {
+					return false;
+		}
+		
+		ImageDTO imageDTO = composedQuestionDTO.getImageQuestionDTO();
+		if (!validate(imageDTO)) {
+			return false;
+		}
+		
+		imageDTO = composedQuestionDTO.getImageAnswerDTO();
+		if (imageDTO != null && !validate(imageDTO)) {
+			return false;
+		}
+		
+		return true;
+	}
+
+	private boolean validate(ImageDTO imageDTO) {
+		if (imageDTO == null || imageDTO.getLdpiImageId() == null || 
+				imageDTO.getMdpiImageId() == null || imageDTO.getHdpiImageId() == null || 
+				imageDTO.getXhdpiImageId() == null ||imageDTO.getXxhdpiImageId() == null) {
+			return false;
+		}
+		
+		return true;
+	}
+
+	private ImageHolder buildImageHolder(ImageDTO imageDTO) {
+		ImageHolder imageHolder = new ImageHolder();
+		for (ImageType type : ImageType.values()) {
+			byte [] bytes = null;
+			switch (type) {
+				case XXHDPI: bytes = 	imageDTO.getXxhdpiImageId();
+									 	break;
+				case XHDPI: bytes = 	imageDTO.getXhdpiImageId();
+				 						break;
+				case HDPI: bytes = 		imageDTO.getHdpiImageId();
+				 						break;
+				case MDPI: bytes = 		imageDTO.getMdpiImageId();
+				 						break;
+				case LDPI: bytes = 		imageDTO.getLdpiImageId();
+				 						break;
+			}
+			imageService.buildImageHolder(imageHolder, type.toString(), bytes);
+		}
+		
+		if (imageHolder.isFull()) {
+			imageHolderDAO.save(imageHolder);
+			return imageHolder;
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -120,44 +201,16 @@ public class QuestionServiceImpl implements QuestionService {
 		return Response.ok().build();
 	}
 
-	@Override
-	@RolesAllowed("WRITER")
-	public Response buildQuestion(Long questionId) {
-		QuestionIncubator questionIncubator = questionIncubatorDAO.find(questionId);
-		
-		ImageHolder imageHolderQuestion = null;
-		if (questionIncubator.getImageQuestionId() != null) {
-			imageHolderQuestion = imageHolderDAO.find(questionIncubator.getImageQuestionId());
-		
-			ImageHolder imageHolderAnswer = null;
-			if (questionIncubator.getImageAnswerId() != null) {
-				imageHolderAnswer = imageHolderDAO.find(questionIncubator.getImageAnswerId());
-			}
-			
-			if (imageHolderQuestion.isFull()) {
-				Question question = new Question(questionIncubator);
-				if (imageHolderAnswer == null || !imageHolderAnswer.isFull()) {
-					question.setImageAnswerId(null);
-				}
-				questionDAO.save(question);
-				questionIncubatorDAO.remove(questionIncubator.getId());
-				databaseService.incrementVersion();
-			}
-		}
-		
-		return Response.ok().build();
-	}
-
 	public void setDatabaseService(DatabaseService databaseService) {
 		this.databaseService = databaseService;
 	}
 
-	public void setQuestionDAO(QuestionDAO questionDAO) {
-		this.questionDAO = questionDAO;
+	public void setImageService(ImageService imageService) {
+		this.imageService = imageService;
 	}
 
-	public void setQuestionIncubatorDAO(QuestionIncubatorDAO questionIncubatorDAO) {
-		this.questionIncubatorDAO = questionIncubatorDAO;
+	public void setQuestionDAO(QuestionDAO questionDAO) {
+		this.questionDAO = questionDAO;
 	}
 
 	public void setImageHolderDAO(ImageHolderDAO imageHolderDAO) {
