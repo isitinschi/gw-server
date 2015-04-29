@@ -3,7 +3,7 @@
 
 GW-SERVER project is used for persisting "Quiz" data: questions, user records etc. This project is supposed to be used together with GW-MANAGER (the branch for this project will be created soon), which main role is to upload question data and manage it, and GW-CLIENT (third-party project, I will add link to the branch later), which is Android device client, that uses server as backend.
 
-The project is based on Google App Engine Platform and is used as backend for Android client (not necessary, actually it could be used for any client). Generally server consists of two modules: Web Services part and Persistence part. The server is able to:
+The project is based on Google App Engine platform and is used as backend for Android client (not necessary, actually it could be used for any client). Generally server consists of two modules: Web Services part and Persistence part. The server is able to:
 
 - recieve, store and manage question information data (possible answers, correct answer, relevant question images)
 - store user records, calculate top records and place in the top for concrete user
@@ -31,8 +31,10 @@ All tests are INTEGRATION TESTS. Thus you need to start server before testing th
 =============================================================================================================================
                                                 TECHNOLOGY STACK
 
+- Java 7 (Java 8 is not supported by GAE)
 - Google App Engine (Server)
 - JAX-RS + Jersey (Web Services)
-- Spring Core (IoC)
+- Spring Framework (IoC/DI)
 - Objectify (Persistence)
 - JUnit (Testing)
+- Maven (Build tool)
