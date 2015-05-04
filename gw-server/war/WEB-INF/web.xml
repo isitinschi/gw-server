@@ -18,13 +18,13 @@
 		<!-- Register JAX-RS Application, if needed. -->
 		<init-param>
 			<param-name>javax.ws.rs.Application</param-name>
-			<param-value>com.guesswhat.server.services.cfg.ApplicationConfig</param-value>
+			<param-value>com.guesswhat.server.service.cfg.ApplicationConfig</param-value>
 		</init-param>
 
 		<!-- Register resources and providers under my.package. -->
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>com.guesswhat.server.services.rs.impl;com.guesswhat.server.services.security.cfg</param-value>
+			<param-value>com.guesswhat.server.service.rs.impl;com.guesswhat.server.service.security.cfg</param-value>
 		</init-param>
 
 		<!-- Register my custom provider (not needed if it's in my.package) AND 

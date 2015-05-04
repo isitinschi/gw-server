@@ -2,7 +2,8 @@ package com.guesswhat.server.persistence.jpa.entity;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import com.guesswhat.server.services.rs.dto.QuestionDTO;
+
+import com.guesswhat.server.service.rs.dto.QuestionDTO;
 
 @Entity
 public class Question {

@@ -3,6 +3,7 @@ package com.guesswhat.server.persistence.jpa.cfg;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
+
 import com.guesswhat.server.persistence.jpa.entity.Image;
 import com.guesswhat.server.persistence.jpa.entity.ImageHolder;
 import com.guesswhat.server.persistence.jpa.entity.Information;

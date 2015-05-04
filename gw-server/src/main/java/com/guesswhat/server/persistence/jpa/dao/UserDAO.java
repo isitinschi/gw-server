@@ -1,6 +1,5 @@
 package com.guesswhat.server.persistence.jpa.dao;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
 import com.guesswhat.server.persistence.jpa.entity.User;
 
 public abstract class UserDAO extends EntityDAO<User> {

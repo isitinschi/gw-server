@@ -2,7 +2,6 @@ package com.guesswhat.server.persistence.jpa.dao;
 
 import java.util.List;
 
-import com.guesswhat.server.persistence.jpa.dao.EntityDAO;
 import com.guesswhat.server.persistence.jpa.entity.Record;
 
 public abstract class RecordDAO extends EntityDAO<Record> {
