@@ -33,12 +33,11 @@ public class DatabaseServiceTest extends AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());		
 		int initialVersion = response.readEntity(Integer.class);
 		
-		QuestionDTO questionDTO = new QuestionDTO();
-		questionDTO.setAnswer1("answer1");
-		questionDTO.setAnswer2("answer2");
-		questionDTO.setAnswer3("answer3");
-		questionDTO.setAnswer4("answer4");
-		questionDTO.setCorrectAnswer("answer1");
+		String answer1 = "answer1";
+		String answer2 = "answer2";
+		String answer3 = "answer3";
+		String answer4 = "answer4";
+		QuestionDTO questionDTO = new QuestionDTO(answer1, answer2, answer3, answer4, answer1);
 		
 		byte [] imageBytes = new byte[] {1,2,3,4,5};
 		

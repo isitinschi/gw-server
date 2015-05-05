@@ -4,6 +4,7 @@
 	<groupId>gw-server</groupId>
 	<artifactId>gw-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 
 	<properties>
 		<appengine.target.version>1.9.19</appengine.target.version>
@@ -39,6 +40,7 @@
 				<version>2.3</version>
 				<configuration>
 					<archiveClasses>true</archiveClasses>
+					<webXml>war\WEB-INF\web.xml</webXml>
 				</configuration>
 			</plugin>
 			<plugin>

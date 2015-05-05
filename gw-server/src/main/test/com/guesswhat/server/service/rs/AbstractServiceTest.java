@@ -47,6 +47,8 @@ public class AbstractServiceTest {
 	private static final String READER_LOGIN = "reader_login_2398";
 	private static final String READER_PASSWORD = "reader_password_9283";
 	
+	private static final Random randomGenerator = new Random();
+	
 	@Before
 	public void setUp() throws InterruptedException {
 		dropAllData();
@@ -98,7 +100,7 @@ public class AbstractServiceTest {
 		imageQuestionDTO.setXxhdpiImageId(imageBytes);
 		composedQuestionDTO.setImageQuestionDTO(imageQuestionDTO);
 		
-		if ((new Random()).nextInt() % 3 == 0) {
+		if (randomGenerator.nextInt() % 3 == 0) {
 			ImageDTO imageAnswerDTO = new ImageDTO();
 			imageAnswerDTO.setLdpiImageId(imageBytes);
 			imageAnswerDTO.setMdpiImageId(imageBytes);

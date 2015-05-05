@@ -53,12 +53,11 @@ public class StressTest extends AbstractServiceTest {
 	
 	private void createQuestions() {
 		for (int i = 0; i < QUESTIONS_COUNT; ++i) {
-			QuestionDTO questionDTO = new QuestionDTO();
-			questionDTO.setAnswer1("answer1-" + i);
-			questionDTO.setAnswer2("answer2-" + i);
-			questionDTO.setAnswer3("answer3-" + i);
-			questionDTO.setAnswer4("answer4-" + i);
-			questionDTO.setCorrectAnswer("answer1-" + i);
+			String answer1 = "answer1-" + i;
+			String answer2 = "answer2-" + i;
+			String answer3 = "answer3-" + i;
+			String answer4 = "answer4-" + i;
+			QuestionDTO questionDTO = new QuestionDTO(answer1, answer2, answer3, answer4, answer1);
 			
 			byte [] imageBytes = new byte[] {1,2,3,4,5,6,7,8,9,10};
 			
