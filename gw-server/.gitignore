@@ -1,1 +1,8 @@
 /target/
+/.settings/
+/.classpath
+/.project
+/.springBeans
+/war/WEB-INF/.gitignore
+/war/WEB-INF/classes
+/.gitignore
