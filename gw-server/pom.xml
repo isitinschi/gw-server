@@ -87,6 +87,7 @@
 		</plugins>
 	</build>
 	<dependencies>
+	
 		<!-- JERSEY -->
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
