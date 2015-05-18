@@ -9,7 +9,6 @@ import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.appengine.api.datastore.Blob;
-import com.google.apphosting.api.ApiProxy.RequestTooLargeException;
 import com.guesswhat.server.persistence.jpa.dao.ImageDAO;
 import com.guesswhat.server.persistence.jpa.dao.ImageHolderDAO;
 import com.guesswhat.server.persistence.jpa.dao.QuestionDAO;
@@ -22,32 +21,15 @@ import com.guesswhat.server.service.rs.face.ImageService;
 @Path("/images")
 public class ImageServiceImpl implements ImageService {
 
+	private static final int IMAGE_MAX_SIZE = 1000000; // bytes in 1 mb
+	
 	@Autowired private QuestionDAO questionDAO;
 	@Autowired private ImageHolderDAO imageHolderDAO;
 	@Autowired private ImageDAO imageDAO;
 
 	@Override
 	public void buildImageHolder(ImageHolder imageHolder, String imageType, byte [] bytes) {
-	    Blob blob = new Blob(bytes);
-		
-	    Image image = new Image(blob);
-	    
-	    try {
-	    	imageDAO.save(image);
-	    } catch (RequestTooLargeException e) {
-	    	// file is too big. Workaround:
-			int middle = bytes.length / 2;
-			byte[] bytes1 = Arrays.copyOfRange(bytes, 0, middle);
-			byte[] bytes2 = Arrays.copyOfRange(bytes, middle,  bytes.length);
-			Blob blob1 = new Blob(bytes1);
-			Blob blob2 = new Blob(bytes2);
-			image = new Image(blob1);
-			Image image2 = new Image(blob2);
-			imageDAO.save(image2);
-			image.setSecondPart(image2.getId());
-			// try again :)
-			imageDAO.save(image);
-	    }
+		Image image = saveImage(bytes);
 	    Long imageId = image.getId();
 	    
 	    switch (ImageType.valueOf(imageType)) {
@@ -63,6 +45,29 @@ public class ImageServiceImpl implements ImageService {
 							break;
 	    	default:   		return;
 	    }			
+	}
+
+	private Image saveImage(byte [] bytes) {
+		if (bytes.length < IMAGE_MAX_SIZE) {
+			Blob blob = new Blob(bytes);
+			Image image = new Image(blob);
+			imageDAO.save(image);
+			
+			return image;
+		} else {
+			// Workaround for big files
+			byte[] bytes1 = Arrays.copyOfRange(bytes, 0, IMAGE_MAX_SIZE);		
+			byte[] bytes2 = Arrays.copyOfRange(bytes, IMAGE_MAX_SIZE,  bytes.length);
+			
+			Blob blob1 = new Blob(bytes1);
+			Image image = new Image(blob1);
+			
+			Image image2 = saveImage(bytes2);
+			image.setSecondPart(image2.getId());
+			imageDAO.save(image);
+			
+			return image;
+		}
 	}
 
 	@Override
@@ -129,16 +134,15 @@ public class ImageServiceImpl implements ImageService {
 	@Override
 	public byte[] findImageById(Long imageId) {
 		Image image = imageDAO.find(imageId);
-		Image imageSecondPart = null;
+		byte [] bytes = getImageBytes(image);		
+		return bytes;
+	}
+
+	private byte[] getImageBytes(Image image) {
+		byte [] bytes = image.getImage().getBytes();
 		if (image.getSecondPart() != null) {
-			imageSecondPart = imageDAO.find(image.getSecondPart());
-		}
-		
-		byte [] bytes = null;
-		if (imageSecondPart != null) {
-			bytes = concat(image.getImage().getBytes(), imageSecondPart.getImage().getBytes());
-		} else {
-			bytes = image.getImage().getBytes();
+			Image imageSecondPart = imageDAO.find(image.getSecondPart());
+			bytes = concat(bytes, getImageBytes(imageSecondPart));
 		}
 		
 		return bytes;
