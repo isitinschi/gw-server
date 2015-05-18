@@ -15,16 +15,7 @@
     <bean id="userDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.UserDAOImpl" />
     <bean id="informationDAO" class="com.guesswhat.server.persistence.jpa.dao.impl.InformationDAOImpl" />
     
-	<!-- SERVICES -->
-    <bean id="backupService" class="com.guesswhat.server.service.rs.impl.BackupServiceImpl" >
-        <property name="databaseService" ref="databaseService" />
-        <property name="questionDAO" ref="questionDAO" />
-        <property name="imageHolderDAO" ref="imageHolderDAO" />
-        <property name="imageDAO" ref="imageDAO" />
-        <property name="userDAO" ref="userDAO" />
-        <property name="recordDAO" ref="recordDAO" />
-    </bean>
-    
+	<!-- SERVICES -->    
     <bean id="databaseService" class="com.guesswhat.server.service.rs.impl.DatabaseServiceImpl" >
         <property name="questionDAO" ref="questionDAO" />
         <property name="imageHolderDAO" ref="imageHolderDAO" />
@@ -44,6 +35,7 @@
     
     <bean id="recordService" class="com.guesswhat.server.service.rs.impl.RecordServiceImpl" >
         <property name="recordDAO" ref="recordDAO" />
+        <property name="databaseService" ref="databaseService" />
     </bean>
     
     <bean id="imageService" class="com.guesswhat.server.service.rs.impl.ImageServiceImpl" >

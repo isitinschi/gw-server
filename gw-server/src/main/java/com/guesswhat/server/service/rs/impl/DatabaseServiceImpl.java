@@ -42,7 +42,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 	}
 	
 	@Override
-	@RolesAllowed("WRITER")
+	@RolesAllowed("ADMIN")
 	public Response dropAllData() {
 		questionDAO.removeAll();
 		userDAO.removeAll();		

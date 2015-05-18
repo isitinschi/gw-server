@@ -2,6 +2,15 @@ package com.guesswhat.server.service.rs;
 
 import java.util.List;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,4 +52,20 @@ public class RecordServiceTest extends AbstractServiceTest {
 			createRecord("user" + i, i);
 		}
 	}
+	
+	private int findRecordPlace(String userId) {
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getRecordUrl());
+
+		Builder invocationBuilder = webTarget.request();		
+		invocationBuilder =  webTarget.path("place").path(userId).request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
+		Response response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
+		Assert.assertEquals(200, response.getStatus());
+		
+		int userPlace = response.readEntity(Integer.class);
+		
+		return userPlace;
+	}
+	
 }

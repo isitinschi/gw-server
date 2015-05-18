@@ -61,7 +61,7 @@ public class StressTest extends AbstractServiceTest {
 			
 			byte [] imageBytes = new byte[] {1,2,3,4,5,6,7,8,9,10};
 			
-			createQuestion(questionDTO, imageBytes);
+			createTestQuestion(questionDTO, imageBytes);
 		}
 	}
 		

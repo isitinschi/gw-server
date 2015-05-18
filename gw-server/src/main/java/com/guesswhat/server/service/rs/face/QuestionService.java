@@ -25,6 +25,10 @@ public interface QuestionService {
 	@Path("/delete/{questionId}")
 	Response deleteQuestion(@PathParam("questionId") Long questionId);
 	
+	@DELETE
+	@Path("/delete")
+	Response deleteQuestions();
+	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/update")
@@ -39,5 +43,11 @@ public interface QuestionService {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/findall")
 	Response findQuestions();
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/download/{questionId}")
+	Response downloadQuestion(@PathParam("questionId") Long questionId);
 	
 }

@@ -20,4 +20,8 @@ public interface SecurityService {
 	@DELETE
 	@Path("/delete/{username}")
 	Response deleteUser(@PathParam("username") String username);
+	
+	@DELETE
+	@Path("/delete")
+	Response deleteUsers();
 }

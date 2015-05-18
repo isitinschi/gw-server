@@ -5,8 +5,10 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.guesswhat.server.service.rs.dto.ComposedQuestionDTO;
 import com.guesswhat.server.service.rs.dto.QuestionDTO;
 import com.guesswhat.server.service.rs.dto.RecordDTO;
+import com.guesswhat.server.service.rs.dto.RecordDTOListWrapper;
 
 public class BackupServiceTest extends AbstractServiceTest {
 	
@@ -18,8 +20,11 @@ public class BackupServiceTest extends AbstractServiceTest {
 		createQuestions();
 		createRecords();
 		
-		byte [] backup = downloadBackup();
-		uploadBackup(backup);
+		RecordDTOListWrapper recordBackup = downloadRecordBackup();
+		uploadRecordBackup(recordBackup);
+		
+		List<ComposedQuestionDTO> questionBackup = downloadQuestionBackup();
+		uploadQuestionBackup(questionBackup);
 		
 		List<QuestionDTO> questions = findQuestions();
 		Assert.assertTrue(questions.size() == QUESTION_COUNT);
@@ -38,7 +43,7 @@ public class BackupServiceTest extends AbstractServiceTest {
 			
 			byte [] imageBytes = new byte[] {1,2,3,4,5};
 			
-			createQuestion(questionDTO, imageBytes);
+			createTestQuestion(questionDTO, imageBytes);
 		}
 	}
 	

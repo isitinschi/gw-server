@@ -1,8 +1,7 @@
 package com.guesswhat.server.service.rs;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -22,16 +21,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.guesswhat.server.service.rs.dto.ComposedQuestionDTO;
 import com.guesswhat.server.service.rs.dto.ImageDTO;
 import com.guesswhat.server.service.rs.dto.ImageType;
 import com.guesswhat.server.service.rs.dto.QuestionDTO;
 import com.guesswhat.server.service.rs.dto.RecordDTO;
+import com.guesswhat.server.service.rs.dto.RecordDTOListWrapper;
 import com.guesswhat.server.service.security.cfg.UserRole;
-
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:cfg-ApplicationContext.xml")
@@ -53,6 +52,18 @@ public class AbstractServiceTest {
 	public void setUp() throws InterruptedException {
 		dropAllData();
 		handshake();
+	}
+	
+	private void dropAllData() {		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getDatabaseUrl());
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.path("drop").request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getAdminAuthorization());
+		
+		response = invocationBuilder.delete();
+		Assert.assertTrue(response.getStatus() == 200 || response.getStatus() == 401);
 	}
 	
 	private void handshake() throws InterruptedException {
@@ -88,7 +99,7 @@ public class AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected void createQuestion(QuestionDTO questionDTO, byte [] imageBytes) {
+	protected void createTestQuestion(QuestionDTO questionDTO, byte [] imageBytes) {
 		ComposedQuestionDTO composedQuestionDTO = new ComposedQuestionDTO();
 		composedQuestionDTO.setQuestionDTO(questionDTO);
 		
@@ -110,6 +121,10 @@ public class AbstractServiceTest {
 			composedQuestionDTO.setImageAnswerDTO(imageAnswerDTO);
 		}
 		
+		createQuestion(composedQuestionDTO);
+	}
+	
+	private void createQuestion(ComposedQuestionDTO composedQuestionDTO) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
@@ -134,43 +149,28 @@ public class AbstractServiceTest {
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected int findRecordPlace(String userId) {
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getRecordUrl());
-
-		Builder invocationBuilder = webTarget.request();		
-		invocationBuilder =  webTarget.path("place").path(userId).request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
-		Response response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
-		Assert.assertEquals(200, response.getStatus());
-		
-		int userPlace = response.readEntity(Integer.class);
-		
-		return userPlace;
-	}
-	
-	protected void deleteQuestion(String questionId) {		
+	private void deleteQuestions() {		
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(getQuestionUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.path("delete").path(questionId).request();
+		Builder invocationBuilder = webTarget.path("delete").request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
 		
 		response = invocationBuilder.delete();
 		Assert.assertEquals(200, response.getStatus());
 	}
 	
-	protected void dropAllData() {		
+	private void deleteRecords() {		
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getDatabaseUrl());
+		WebTarget webTarget = client.target(getRecordUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.path("drop").request();
+		Builder invocationBuilder = webTarget.path("delete").request();
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
 		
 		response = invocationBuilder.delete();
-		Assert.assertTrue(response.getStatus() == 200 || response.getStatus() == 401);
+		Assert.assertEquals(200, response.getStatus());
 	}
 	
 	protected List<QuestionDTO> findQuestions() {		
@@ -203,20 +203,62 @@ public class AbstractServiceTest {
 		return records;
 	}
 	
-	protected byte [] downloadBackup() {		
+	protected RecordDTOListWrapper downloadRecordBackup() {	
 		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getBackupUrl());
+		WebTarget webTarget = client.target(getRecordUrl());
 		Response response = null;
 		
-		Builder invocationBuilder = webTarget.path("download").request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization()).accept(MediaType.APPLICATION_OCTET_STREAM);
+		Builder invocationBuilder = webTarget.path("backup").path("download").request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
 		
-		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
+		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
 		Assert.assertEquals(200, response.getStatus());
 		
-		byte[] backup = response.readEntity(byte [].class);
+		RecordDTOListWrapper recordDTOListWrapper = response.readEntity(RecordDTOListWrapper.class);
 		
-		return backup;
+		return recordDTOListWrapper;
+	}
+	
+	protected void uploadRecordBackup(RecordDTOListWrapper recordDTOListWrapper) {
+		deleteRecords();
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getRecordUrl());
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.path("backup").path("upload").request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
+		
+		response = invocationBuilder.post(Entity.entity(recordDTOListWrapper, MediaType.APPLICATION_JSON_TYPE));		
+		Assert.assertEquals(200, response.getStatus());
+	}
+	
+	protected List<ComposedQuestionDTO> downloadQuestionBackup() {
+		List<QuestionDTO> questions = findQuestions();
+		List<ComposedQuestionDTO> composedQuestions = new ArrayList<ComposedQuestionDTO>();
+		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getQuestionUrl()).path("download");
+		Response response = null;
+		for (QuestionDTO questionDTO : questions) {
+			Builder invocationBuilder = webTarget.path(questionDTO.getId()).request();
+			invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
+			
+			response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));		
+			Assert.assertEquals(200, response.getStatus());
+			
+			ComposedQuestionDTO composedQuestionDTO = response.readEntity(ComposedQuestionDTO.class);
+			composedQuestions.add(composedQuestionDTO);
+		}
+		
+		return composedQuestions;
+	}
+	
+	protected void uploadQuestionBackup(List<ComposedQuestionDTO> composedQuestions) {
+		deleteQuestions();
+		for (ComposedQuestionDTO composedQuestionDTO : composedQuestions) {
+			createQuestion(composedQuestionDTO);
+		}
 	}
 	
 	protected byte [] downloadImage(String questionId, ImageType type, String path) {		
@@ -233,22 +275,6 @@ public class AbstractServiceTest {
 		byte[] bytes = response.readEntity(byte [].class);
 		
 		return bytes;
-	}
-	
-	protected void uploadBackup(byte [] backup) {		
-		Client client = ClientBuilder.newClient();
-		WebTarget webTarget = client.target(getBackupUrl());
-		Response response = null;
-		
-		InputStream is = new ByteArrayInputStream(backup);
-		
-		String sContentDisposition = "attachment; filename=\"" + "tempFile" + "\"";
-		
-		Builder invocationBuilder = webTarget.path("upload").request();
-		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization()).header("Content-Disposition", sContentDisposition);
-		
-		response = invocationBuilder.post(Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM));		
-		Assert.assertEquals(200, response.getStatus());
 	}
 	
 	protected static String getSecurityUrl() {
@@ -269,10 +295,6 @@ public class AbstractServiceTest {
 	
 	protected static String getDatabaseUrl() {
 		return SERVER_URL + "/database";
-	}
-	
-	protected static String getBackupUrl() {
-		return SERVER_URL + "/backup";
 	}
 	
 	protected static String getAdminAuthorization() {

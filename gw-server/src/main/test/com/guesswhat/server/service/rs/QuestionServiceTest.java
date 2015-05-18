@@ -63,7 +63,7 @@ public class QuestionServiceTest extends AbstractServiceTest {
 			
 			byte [] imageBytes = new byte[] {1,2,3,4,5};
 			
-			createQuestion(questionDTO, imageBytes);
+			createTestQuestion(questionDTO, imageBytes);
 		}
 	}
 }

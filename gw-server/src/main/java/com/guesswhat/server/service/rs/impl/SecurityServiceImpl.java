@@ -1,5 +1,7 @@
 package com.guesswhat.server.service.rs.impl;
 
+import java.util.List;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Path;
@@ -67,6 +69,17 @@ public class SecurityServiceImpl implements SecurityService {
 		return Response.ok().build();
 	}
 
+	@Override
+	@RolesAllowed("ADMIN")
+	public Response deleteUsers() {
+		User admin = userDAO.findAdmin();
+		List<User> users = userDAO.findAll();
+		users.remove(admin);
+		userDAO.removeAll(users);
+		
+		return Response.ok().build();
+	}
+	
 	public void setUserDAO(UserDAO userDAO) {
 		this.userDAO = userDAO;
 	}

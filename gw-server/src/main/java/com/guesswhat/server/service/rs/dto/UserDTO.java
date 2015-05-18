@@ -2,9 +2,10 @@ package com.guesswhat.server.service.rs.dto;
 
 import java.io.Serializable;
 
-@SuppressWarnings("serial")
 public class UserDTO implements Serializable {
 
+	private static final long serialVersionUID = -8294353716092078045L;
+	
 	private String username;
 	private String password;
 	private String role;

@@ -134,6 +134,39 @@ public class QuestionServiceImpl implements QuestionService {
 		
 		return null;
 	}
+	
+	@Override
+	@RolesAllowed("WRITER")
+	public Response downloadQuestion(Long questionId) {
+		ComposedQuestionDTO composedQuestionDTO = new ComposedQuestionDTO();
+		
+		Question question = questionDAO.find(questionId);
+		QuestionDTO questionDTO = new QuestionDTO(question);
+		composedQuestionDTO.setQuestionDTO(questionDTO);
+		
+		Long imageHolderQuestionId = question.getImageQuestionId();
+		ImageDTO imageDTO = populateImageDTO(imageHolderQuestionId);
+		composedQuestionDTO.setImageQuestionDTO(imageDTO);
+		
+		Long imageHolderAnswerId = question.getImageAnswerId();
+		if (imageHolderAnswerId != null) {
+			imageDTO = populateImageDTO(imageHolderAnswerId);
+			composedQuestionDTO.setImageQuestionDTO(imageDTO);
+		}
+		
+		return Response.ok(composedQuestionDTO).build();
+	}
+	
+	private ImageDTO populateImageDTO(Long imageHolderId) {
+		ImageDTO imageDTO = new ImageDTO();
+		ImageHolder imageHolder = imageHolderDAO.find(imageHolderId);
+		imageDTO.setLdpiImageId(imageService.findImageById(imageHolder.getLdpiImageId()));
+		imageDTO.setMdpiImageId(imageService.findImageById(imageHolder.getMdpiImageId()));
+		imageDTO.setHdpiImageId(imageService.findImageById(imageHolder.getHdpiImageId()));
+		imageDTO.setXhdpiImageId(imageService.findImageById(imageHolder.getXhdpiImageId()));
+		imageDTO.setXxhdpiImageId(imageService.findImageById(imageHolder.getXxhdpiImageId()));
+		return imageDTO;
+	}
 
 	@Override
 	@RolesAllowed("READER")
@@ -157,6 +190,15 @@ public class QuestionServiceImpl implements QuestionService {
 			questionDAO.remove(questionId);
 			databaseService.incrementVersion();
 		}
+		
+		return Response.ok().build();
+	}
+	
+	@Override
+	@RolesAllowed("WRITER")
+	public Response deleteQuestions() {
+		questionDAO.removeAll();
+		databaseService.incrementVersion();
 		
 		return Response.ok().build();
 	}

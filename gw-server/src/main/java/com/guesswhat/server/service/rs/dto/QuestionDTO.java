@@ -4,9 +4,10 @@ import java.io.Serializable;
 
 import com.guesswhat.server.persistence.jpa.entity.Question;
 
-@SuppressWarnings("serial")
 public class QuestionDTO implements Serializable {
-
+	
+	private static final long serialVersionUID = 5038834215403784518L;
+	
 	private String id;
 	private String answer1;
 	private String answer2;

@@ -14,7 +14,9 @@ import javax.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.guesswhat.server.service.rs.dto.ComposedQuestionDTO;
 import com.guesswhat.server.service.rs.dto.QuestionDTO;
+import com.guesswhat.server.service.rs.dto.RecordDTOListWrapper;
 
 public class DatabaseServiceTest extends AbstractServiceTest {
 	
@@ -30,7 +32,7 @@ public class DatabaseServiceTest extends AbstractServiceTest {
 		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getReaderAuthorization());
 		
 		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
-		Assert.assertEquals(200, response.getStatus());		
+		Assert.assertEquals(200, response.getStatus());
 		int initialVersion = response.readEntity(Integer.class);
 		
 		String answer1 = "answer1";
@@ -41,31 +43,46 @@ public class DatabaseServiceTest extends AbstractServiceTest {
 		
 		byte [] imageBytes = new byte[] {1,2,3,4,5};
 		
-		createQuestion(questionDTO, imageBytes);
+		createTestQuestion(questionDTO, imageBytes);
+		createRecord("user0", 500);
 		
 		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
 		Assert.assertEquals(200, response.getStatus());		
 		int newVersion = response.readEntity(Integer.class);
 		Assert.assertNotEquals(initialVersion, newVersion);		
 		
-		byte [] backup = downloadBackup();
-		uploadBackup(backup);
-		
+		RecordDTOListWrapper recordBackup = downloadRecordBackup();		
+		uploadRecordBackup(recordBackup);
 		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
-		Assert.assertEquals(200, response.getStatus());		
+		Assert.assertEquals(200, response.getStatus());
 		int newVersion2 = response.readEntity(Integer.class);
 		Assert.assertNotEquals(initialVersion, newVersion2);
-		Assert.assertNotEquals(newVersion, newVersion2);
+		Assert.assertNotEquals(newVersion, newVersion2);		
 		
-		List<QuestionDTO> questions = findQuestions();
-		Assert.assertTrue(questions.size() == 1);
-		deleteQuestion(questions.get(0).getId());
-		
+		List<ComposedQuestionDTO> questionBackup = downloadQuestionBackup();
+		uploadQuestionBackup(questionBackup);
 		response = invocationBuilder.post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
 		Assert.assertEquals(200, response.getStatus());		
 		int newVersion3 = response.readEntity(Integer.class);
 		Assert.assertNotEquals(initialVersion, newVersion3);
 		Assert.assertNotEquals(newVersion, newVersion3);
 		Assert.assertNotEquals(newVersion2, newVersion3);
+		
+		List<QuestionDTO> questions = findQuestions();
+		Assert.assertTrue(questions.size() == 1);
+		deleteQuestion(questions.get(0).getId());		
 	}
+	
+	private void deleteQuestion(String questionId) {		
+		Client client = ClientBuilder.newClient();
+		WebTarget webTarget = client.target(getQuestionUrl());
+		Response response = null;
+		
+		Builder invocationBuilder = webTarget.path("delete").path(questionId).request();
+		invocationBuilder.header(HttpHeaders.AUTHORIZATION, getWriterAuthorization());
+		
+		response = invocationBuilder.delete();
+		Assert.assertEquals(200, response.getStatus());
+	}
+	
 }
